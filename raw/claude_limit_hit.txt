@@ -1,0 +1,45 @@
+**Why**** ****People**** Hit ****Limits**** ****So**** ****Fast**** (The "Context ****Trap****")**
+
+Every time you send a message to Claude, it doesn't just read your new message. **It re-****reads**** ****the**** ****entire**** chat ****history**** ****from**** ****the**** ****very**** ****beginning****.** * **Message**** #1:** 500 words (Super cheap)
+
+- **Message**** #10:** 5,000 words (Claude re-reads messages 1–9) 
+
+- **Message**** #30:** 25,000 words (Claude re-reads everything, burning through your 5-hour limit in just 2 or 3 prompts!)
+
+If you keep trying to fix bugs inside a massive, single chat thread, Claude will lock you out rapidly.
+
+**The Pro ****Strategy****: ****How**** ****to**** ****Build**** ****the**** ****App**** in 2–3 ****Days**
+
+To beat the limits and build your app fast, you need to use specific techniques designed to save your message budget.
+
+**1. ****Use**** ****the**** "****Projects****" ****Feature**** (The ****Ultimate**** ****Cheat**** ****Code****)**
+
+Claude Pro has a feature called **Projects**. This allows you to upload files into a side panel that acts as a "knowledge base." 
+
+- Anthropic uses **prompt**** ****caching** for Projects. This means once Claude reads your project files, it freezes them in its memory. 
+
+- Subsequent questions about those files cost a fraction of the normal limit, preventing you from draining your budget.
+
+**2. The "****Fresh**** Chat" ****Rule**
+
+Never ask Claude a new question in an old, long thread. Once a piece of code works perfectly, copy it, **start a ****brand**** ****new**** chat**, paste the working code, and say: *"**This** **code** **works** **perfectly**. **Now**, **let's** add **the** **next** **feature**."* This keeps your threads short, fast, and incredibly cheap.
+
+**3. ****Let**** Claude ****Debug**** ****Itself**** in ****Bulk**
+
+Instead of sending a message every time you see a tiny error, bunch them up. If the code doesn't work, copy the error message, look at the screen, and write a single, detailed prompt: *"Here is **the** **error** **code**, here is **what** **happened** **on** **my** mobile **screen**, and here is **what** I **clicked**. **Fix** **all** **three** **things** **at** **once**."* ### 4. Enable "Extra Usage" Credits
+
+If you are in the zone on a Saturday afternoon and don't want to wait 5 hours for a reset, Anthropic allows Pro users to toggle on **Usage**** ****Credits** in their settings. You can load $10 or $20 onto your account, and if you hit your normal subscription limit, it seamlessly switches over to paying a few cents per message. This acts as a cheap insurance policy to keep your momentum going.
+
+**What**** a ****Realistic**** Timeline ****Looks**** ****Like**
+
+By using the **Fresh**** Chat** method and utilizing a **Project**, you can space out your development easily:
+
+- **Friday**** ****Night**** (1 Session - ~30 ****mins****):** Generate the beautiful, mobile-friendly landing page and upload button. Save it to your computer.
+
+- **Saturday**** ****Morning**** (1 Session - ~1 ****hour****):** Start a fresh chat. Have Claude write the backend code to connect to the Sightengine or Hive API.
+
+- **Saturday**** ****Afternoon**** (1 Session - ~1 ****hour****):** Start a fresh chat. Have Claude connect your frontend payment link (Stripe/Lemon Squeezy) to your backend database.
+
+- **Sunday (1-2 ****Sessions****):** Test the app on your phone, squash any bugs, and deploy it to the web for free using Vercel.
+
+By breaking the app into tiny, distinct blocks and giving Claude a fresh workspace for each block, you bypass the daytime squeeze completely.

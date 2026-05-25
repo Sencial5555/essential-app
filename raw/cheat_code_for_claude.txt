@@ -1,0 +1,43 @@
+**link****: **https://www.youtube.com/watch?v=sboNwYmH3AY
+
+**1. It ****Solves**** ****the**** "****Zero**** ****Coding**** ****Skills****" ****Confusion**
+
+When you ask Claude to write code, it will give you frontend files, backend files, API connection logic, and deployment scripts. As a non-coder, it is incredibly easy to lose track of which file does what. By setting up this system first:
+
+- Every time Claude creates a code file, it doesn't just give you raw text; it builds a corresponding **wiki**** ****note** explaining *why* it wrote that code, what it connects to, and how it works [[10:02](http://www.youtube.com/watch?v=sboNwYmH3AY&t=602)].
+
+- You can visually look at Obsidian's "Graph View" [[11:04](http://www.youtube.com/watch?v=sboNwYmH3AY&t=664)] and see a map of your app. Your upload-button.js will literally have a line drawn connecting it to your sightengine-api.js. You will understand your app's structure visually without needing to read the code.
+
+**2. It ****Destroys**** ****the**** ****Token**** Limit ****Problem**
+
+The video highlights a developer who compressed 383 files into this style of wiki and **dropped**** ****their**** Claude ****token**** ****usage**** ****by**** 95%** [[04:53](http://www.youtube.com/watch?v=sboNwYmH3AY&t=293)].
+
+- When you use a standard chat window, you have to constantly re-paste your whole project so Claude has context, which quickly locks you out due to daily limits.
+
+- With Karpathy's method, Claude Code automatically maintains compact index files and summaries of your project [[02:47](http://www.youtube.com/watch?v=sboNwYmH3AY&t=167)]. When you ask for a feature change, Claude Code doesn't re-read your whole app; it follows the index links directly to the file that needs changing [[16:12](http://www.youtube.com/watch?v=sboNwYmH3AY&t=972)], saving you a massive amount of message limits.
+
+**3. The "API Ingestion" ****Superpower**
+
+To build your app, you need to use the Sightengine or Hive Moderation API. Their documentation can be dozens of pages long and full of technical jargon. Using the tool shown in the video (**Obsidian**** Web ****Clipper**) [[08:53](http://www.youtube.com/watch?v=sboNwYmH3AY&t=533)]:
+
+- Go to the Sightengine developer documentation website.
+
+- Click the Web Clipper to send the raw text straight into your raw/ folder [[09:06](http://www.youtube.com/watch?v=sboNwYmH3AY&t=546)].
+
+- Tell Claude Code: *"Ingest **this** API **documentation** **into** **our** **app** **wiki**."* [[09:30](http://www.youtube.com/watch?v=sboNwYmH3AY&t=570)]
+
+- Claude will instantly digest the rules of that API, map out how your app needs to talk to it, and prepare the exact code—saving you days of trying to understand developer manuals.
+
+**Your**** ****Step-by-Step**** Action ****Plan**** ****to**** ****Set**** ****This**** ****Up**
+
+To do exactly what the guy in the video did for your project, do this first:
+
+- **Download**** ****Obsidian** for free and create a folder on your desktop called AI-Video-Detector-Vault [[06:29](http://www.youtube.com/watch?v=sboNwYmH3AY&t=389)].
+
+- **Open Claude ****Code** in your computer's terminal inside that folder [[06:55](http://www.youtube.com/watch?v=sboNwYmH3AY&t=415)].
+
+- **Run**** ****the**** ****Setup**** ****Prompt****:** Tell Claude Code: *"I **want** **to** **implement** Andrej **Karpathy's** LLM **Wiki** **architecture** **for** **my** **new** project. **Act** **as** **my** LLM **wiki** **agent**, **create** **the** **raw**/ and **wiki**/ **folders**, and **generate** **the** **CLAUDE.md**, **index.md**, and **operation** **log.md** files."* [[07:28](http://www.youtube.com/watch?v=sboNwYmH3AY&t=448)]
+
+- **Feed**** it Context:** Before coding, use the Web Clipper to drop your app ideas, your feature lists, and the Sightengine API documentation into the raw/ folder, and tell Claude to ingest it [[09:30](http://www.youtube.com/watch?v=sboNwYmH3AY&t=570)].
+
+Once Claude finishes building this web of knowledge, you will have a perfect, automated "Second Brain" for your startup [[01:13](http://www.youtube.com/watch?v=sboNwYmH3AY&t=73)]. At that point, you can transition over to **Cursor** or stay in **Claude ****Code**, point it at your beautifully indexed wiki, and say: *"**Based** **on** **our** **wiki** **blueprint**, **build** **Phase** 1: The Mobile Frontend."*

@@ -1,0 +1,109 @@
+**The ****Crucial**** ****Rule****: ****Avoid**** ****the**** "API Cost ****Trap****"**
+
+Before choosing how to get paid, you must understand your expenses:
+
+- Every time a user checks an image, your external AI brain (like Sightengine) charges you, for example, $0.003.
+
+- If a single user uploads 1,000 images for fun, they just cost you $3.00.
+
+- Therefore, **you**** ****cannot**** ****offer**** ****unlimited**** free ****use****.** You must gate the app.
+
+**The 2 Best ****Monetization**** ****Models**** ****for**** ****Your**** ****App**
+
+**1. The ****Token****/Credit System (****Highly**** ****Recommended****)**
+
+Instead of a monthly subscription, users buy "credits."
+
+- **How**** it ****works****:** Everyone gets 3 free scans when they first open the app. If they want more, they buy a package (e.g., $4.99 for 100 scans).
+
+- **Why**** ****it’s**** ****great**** ****for**** ****you****:** It directly matches your costs. If they don't pay, they can't burn through your API budget.
+
+**2. The ****Premium**** ****Weekly****/****Monthly**** ****Subscription**
+
+Users pay a recurring fee for higher access.
+
+- **How**** it ****works****:** You offer a weekly subscription (e.g., $2.99/week) or monthly (e.g., $9.99/month) for up to 500 scans per month.
+
+- **Why**** ****it’s**** ****great**** ****for**** ****you****:** Recent data shows mobile users love weekly micro-subscriptions, providing you with a predictable, recurring income.
+
+**How**** Claude ****Integrates**** ****the**** ****Payments**** (****Without**** ****You**** ****Coding****)**
+
+You don't need to build a secure credit card processing system from scratch—that is incredibly dangerous and complex. Instead, you will use **Lemon**** ****Squeezy** or **Stripe**** ****Payment**** Links**.
+
+They handle the security, the credit cards, Apple Pay, Google Pay, and global sales taxes.
+
+Here is how you and Claude will set it up:
+
+																[ User hits limit in your App ] 
+
+																               │
+
+																               ▼
+
+																[ Claude pops up a beautiful Paywall screen ]
+
+																               │
+
+																               ▼
+
+																[ User clicks "Buy Credits" -> Opens a secure Lemon Squeezy overlay ]
+
+																               │
+
+																               ▼
+
+																[ User pays with Apple Pay -> Lemon Squeezy tells your database "Success!" ]
+
+																               │
+
+																               ▼
+
+																[ Claude unlocks 100 scans for the user ]
+
+**The ****Exact**** ****Prompts**** ****to**** ****Use**** ****with**** Claude:**
+
+When you are ready to add the money-making feature, you will guide Claude like this:
+
+**Prompt ****for**** ****the**** ****Paywall**** ****Look****:** *"I **want** **to** add a **paywall** **to** **my** mobile web **app**. **When** a **user** **runs** out of free **credits**, a **beautiful** pop-**up** **overlay** **should** **appear**. It **should** **say** '**Detect** **Unlimited** AI Videos' and **feature** **two** **pricing** **options**: $4.99 **for** 100 **credits**, **or** $9.99/**month**. Design **this** **using** **Tailwind** CSS."*
+
+**Prompt ****for**** ****the**** ****Payment**** ****Integration****:** *"I am **using** **Lemon** **Squeezy** **for** **payments**. **Write** **the** JavaScript **webhook** **code** **so** **that** **when** a **user** **successfully** **completes** a **purchase** **via** **my** **Lemon** **Squeezy** **payment** link, **their** account **database** **updates** **to** **reflect** **their** **new** credits."*
+
+**The Cost ****Breakdown**** (****Sightengine**** ****Example****)**
+
+API companies usually offer a **Free ****Tier** to build your app, and then a monthly subscription that includes a set number of scans.
+
+| **Plan**** ****Tier** | **Monthly**** Cost** | **Included**** ****Scans** | **Cost Per ****Scan**** (****Inside**** ****Plan****)** | **Extra ****Scan**** Cost (****Overage****)** |
+| --- | --- | --- | --- | --- |
+| **Free** | $0 | 2,000 / month | **$0.00** | N/A (Stops at limit) |
+| **Starter** | $29 | 10,000 / month | **$0.0029** | $0.0020 / scan |
+| **Growth** | $99 | 40,000 / month | **$0.0025** | $0.0020 / scan |
+
+**What**** is an "****Operation****"?** In your app's case, 1 operation = 1 image frame uploaded and analyzed.
+
+**The Profit ****Math****: ****How**** ****Much**** ****Do**** ****You**** ****Make****?**
+
+Let's do the exact math to see how much money goes into your pocket using the **Starter ****Plan** ($29/mo) and selling **Credit ****Packs** to your users.
+
+Imagine a user runs out of free scans and buys your **$4.99 ****package**** ****for**** 100 ****scans**.
+
+- **Your**** ****Revenue****:** +$4.99
+
+- **Payment**** ****Processing**** ****Fee** (Lemon Squeezy / Stripe takes roughly 5% + $0.30): -$0.55
+
+- **The API Cost** (100 scans × $0.0020 per extra scan): -$0.20
+
+- **Your**** Net Profit:** **+$4.24**
+
+As you can see, the profit margins on "AI Wrapper" apps are incredibly high. A single customer buying a $4.99 pack completely covers your API costs for that user and leaves you with a great margin.
+
+**How**** ****to**** ****Keep**** an ****Eye**** ****on**** ****Costs**** ****Automatically**
+
+Because you have zero coding skills, you might worry about a user finding a loophole and running up your bill. You can have Claude build safety guardrails into your app right from the start.
+
+**The "Cost ****Control****" Prompt ****for**** Claude:**
+
+When Claude is writing your backend code, give it this exact instruction:
+
+*"Add a **hard** limit **to** **the** backend **code**. No **single** **user** ID is **allowed** **to** **make** more **than** 5 API **requests** per **day** **unless** **their** **database** **profile** shows **they** **have** **purchased** **premium** credits. **If** **they** hit **the** limit, stop **the** API **call** **entirely** and **send** back a 'Limit **Reached**' **message** **to** **the** frontend."*
+
+By doing this, your app will block the request *before* it ever reaches Sightengine, meaning you will never be charged for unexpected spam. Furthermore, your Sightengine developer dashboard will show you a live, real-time chart of exactly how many cents you have spent so far that month.

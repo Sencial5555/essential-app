@@ -1,0 +1,45 @@
+there is a golden rule to doing this successfully without getting banned or called out: **Don't**** ****pretend**** ****to**** be a random ****customer**** ****who**** "****found****" ****the**** ****app****. ****Instead****, be ****the**** ****regular**** ****person**** ****who**** *****built***** it ****because**** ****you**** ****were**** ****frustrated**** ****by**** a ****problem****.** Reddit and TikTok audiences have an incredibly high "BS detector." If you say, *"**Hey** **guys**, **look** **at** **this** **cool** **app** I **found**!"* they will figure out you own it and downvote you. But if you say, *"I **have** **zero** **coding** **skills**, **but** I got **so** **sick** of **fake** AI videos **on** **my** **timeline** **that** I **forced** Claude **to** **help** me **build** a **tool** **to** spot **them**,"* people will actively root for you and try it out.
+
+**The 4-Platform ****Playbook**** ****for**** a "****Regular**** ****Person****"**
+
+Here is exactly how to angle your content for each platform you mentioned to get maximum attention:
+
+**1. ****TikTok****: The "****Zero-Skills**** ****Underdog****" ****Angle**
+
+TikTok thrives on visual storytelling and transparency. Your lack of coding skills is actually your greatest marketing weapon here.
+
+- **The Video ****Format****:** Record your phone screen or a split-screen of yourself. Show a highly viral, controversial AI video frame. Then, upload it into your app and show the meter ticking up to "98% AI."
+
+- **The ****Hook****:** *"Day 4 of **trying** **to** **build** an AI **detector** **app** **using** **only** Claude AI **because** I **have** **absolutely** **zero** **programming** **skills**. Here is **how** **much** it cost me **today**...**"*
+
+**2. ****Reddit****: The "****Feedback**** ****&**** ****Roast**** Me" ****Angle**
+
+Reddit hates spam but loves community projects. Target subreddits like r/SideProject, r/InternetIsBeautiful, or r/artificial.
+
+- **The ****Strategy****:** Do not post a link and leave. Post a text story explaining *why* you built it.
+
+- **The ****Hook****:** *"I **don't** **know** **how** **to** **code**, **but** I **spent** **my** **weekend** **using** Claude **to** **build** a **simple** mobile web **app** **that** **spots** AI video **frames**. **It’s** **totally** free **for** **your** **first** **few** **scans**—**can** **you** **guys** **please** **try** **to** **break** it and **tell** me **what** **features** I **should** add **next**?"*
+
+**3. X (****Twitter****): The "****Build**** in Public" ****Hub**
+
+X is where tech founders, AI enthusiasts, and creators hang out. They love reading about the actual process, the math, and the struggles.
+
+- **The ****Strategy****:** Create "threads" (a series of connected tweets) detailing your journey. Share screenshots of your conversations with Claude, your early ugly designs, and your revenue milestones.
+
+- **The ****Hook****:** *"**How** I **built** a mobile AI-**detection** **app** in 48 **hours** **with** $0 **coding** **experience** and Claude Pro. A **thread** **on** **the** **exact** **prompts**, **costs**, and **mistakes** I made **along** **the** **way**. 🧵"*
+
+**4. ****LinkedIn****: The "****Future**** of ****Work****" ****Case**** ****Study**
+
+LinkedIn loves stories about productivity, innovation, and how AI is changing business.
+
+- **The ****Strategy****:** Frame your project as proof that non-technical people can now become software creators thanks to AI.
+
+- **The ****Hook****:** *"**You** no **longer** **need** a **computer** **science** **degree** **to** **launch** a software **product**. Over **the** **weekend**, I **used** Claude AI **as** **my** **virtual** CTO **to** **build** a mobile-**optimized** AI video **detector** **from** **scratch**. Here **are** **my** 3 **biggest** **takeaways** **on** **how** **generative** AI is **leveling** **the** playing **field** **for** non-**technical** **creators**...**"*
+
+**Claude ****Can**** ****Write**** ****the**** ****Content**** ****Too**
+
+When you are ready to launch, you don't have to stare at a blank page trying to write these posts. You can hand the reins to Claude.
+
+**Prompt**** ****to**** ****use**** ****later****:** *"**Act** **as** a **native** **TikTok** **creator** **who** **talks** **about** **cool** **tech** **tools**. **Write** a 30-second video script **demonstrating** **my** **new** AI-**detection** **app**. **Keep** **the** **tone** **casual**, **conversational**, and **slightly** **humorous**. **Focus** **on** **the** **hook**: **how** a non-**coder** **built** **this** out of **frustration** **with** **deepfakes**."*
+
+By positioning yourself as an everyday creator sharing a cool experiment, your marketing will feel authentic, and people will want to support your journey.

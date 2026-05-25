@@ -1,0 +1,93 @@
+**Part 1: The Building ****&**** ****Coding**** ****Workspace**
+
+These are the apps you download to your computer where the app's files are actually written and organized.
+
+**1. ****Obsidian**** (The Project ****Control**** Center)**
+
+- **What**** it is:** A free, lightning-fast note-taking app that stores everything locally on your computer as plain text markdown files.
+
+- **What**** it ****does**** ****for**** ****your**** project:** It acts as your product's "blueprint archive." Before telling an AI to code, you will use Obsidian to paste in API documentation, draft your pricing strategies, and organize your layout ideas.
+
+- **The ****Killer**** ****Feature****:** You will create a file called **CLAUDE.md** at the root of your project folder. This file holds your app's core instructions, goals, and rules. Both Cursor and Claude Code will read this file automatically, meaning they never forget what they are building.
+
+**2. ****Cursor**** (The Visual ****Workbench****)**
+
+- **What**** it is:** An AI-first code editor (a heavily upgraded fork of VS Code) built specifically for pairing with AI.
+
+- **What**** it ****does**** ****for**** ****your**** project:** Staring at raw code files inside a terminal window is a nightmare for beginners. Cursor provides a beautiful visual window where you can see your files, see folders, and preview your app.
+
+- **The ****Killer**** ****Feature****:** "Composer Mode." You can hit Cmd+I (or Ctrl+I), type in plain English what you want to change on your mobile screen, and Cursor will visually flash the code changes directly in front of you.
+
+**3. Claude ****Code**** (The Terminal ****Engineer****)**
+
+- **What**** it is:** Anthropic’s official command-line tool that lives directly inside your computer’s terminal.
+
+- **What**** it ****does**** ****for**** ****your**** project:** While Cursor is great for visual tweaks, **Claude ****Code**** is ****your**** ****autonomous**** ****developer****.** You run it inside the terminal at the bottom of Cursor. You don't chat with it like a normal chatbot; you give it high-level tasks.
+
+- **The ****Killer**** ****Feature****:** "Auto Mode" and /goal. You can type: claude /goal "Connect our upload button to the Sightengine API and run a simulated test." Claude Code will autonomously scan your directories, write the logic, execute tests, identify errors, and rewrite the code until it works—all without you clicking a button.
+
+**Part 2: The ****Core**** ****Infrastructure**** (The ****Brains**** ****&**** Money)**
+
+Your app needs an external brain to analyze images and a way to take credit cards. You don't download these; you sign up for accounts on their websites.
+
+**4. ****Sightengine**** ****or**** ****Hive**** ****Moderation**** (The AI ****Brain**** API)**
+
+- **What**** it is:** Enterprise-grade AI analysis platforms.
+
+- **What**** it ****does**** ****for**** ****your**** project:** When a user uploads a video frame to your app, your app securely forwards it to this API. Within milliseconds, their massive server farms scan the image and return data saying something like ai-generated: 0.98. Your app reads this and outputs "98% Likely AI" to the user.
+
+**5. ****Lemon**** ****Squeezy**** ****or**** ****Stripe**** ****Checkout**** (The Cash ****Register****)**
+
+- **What**** it is:** Managed payment platforms designed for software creators.
+
+- **What**** it ****does**** ****for**** ****your**** project:** They handle the terrifying parts of selling online—credit card security, fraud detection, Apple Pay/Google Pay integration, and global sales tax compliance.
+
+- **How**** it ****works**** ****with**** AI:** When a user clicks "Buy Credits," your app opens a secure link provided by Stripe or Lemon Squeezy. Once they pay, the platform sends a secure signal back to your backend saying, *"**Payment** **successful**, **give** **User** 123 **their** 100 credits."*
+
+**Part 3: The ****Launchpad**** (****Putting**** It Online)**
+
+To open this app on your phone or share it with users on TikTok, it has to move from your local computer onto the live internet.
+
+**6. ****GitHub**** (The ****Code**** ****Vault****)**
+
+- **What**** it is:** A secure, cloud-based storage system for code repositories.
+
+- **What**** it ****does**** ****for**** ****your**** project:** Think of it like a Google Drive specifically built for code that tracks every single version of your files.
+
+- **How**** ****you**** ****use**** it:** You don't even have to understand how to use it manually. You can simply tell **Claude ****Code** to git commit and push my changes to GitHub, and it will securely upload your code to your private GitHub account.
+
+**7. ****Vercel**** ****or**** ****Render**** (The Free ****Cloud**** ****Host****)**
+
+- **What**** it is:** Cloud hosting platforms that put websites and backend servers online instantly.
+
+- **What**** it ****does**** ****for**** ****your**** project:** You link your Vercel account to your GitHub repository. Every time Claude updates your code on GitHub, Vercel detects it, packages the app, and deploys it live to a URL (like your-app.vercel.app) in under 10 seconds.
+
+**The ****Perfect**** ****Workflow**** ****Loop**
+
+When you sit down to build, your workflow will look seamlessly integrated:
+
+																[ Obsidian ] ──> Plan your features and write instructions in CLAUDE.md
+
+																     │
+
+																     ▼
+
+																 [ Cursor ]  ──> Open your project folder to visually look at your design
+
+																     │
+
+																     ▼
+
+																[Claude Code] ──> Run inside Cursor's terminal to write backend code autonomously
+
+																     │
+
+																     ▼
+
+																 [ GitHub ]  ──> Claude Code automatically pushes your working files to the cloud
+
+																     │
+
+																     ▼
+
+																 [ Vercel ]  ──> Instantly publishes the code live to open on your phone browser

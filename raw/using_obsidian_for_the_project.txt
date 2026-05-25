@@ -1,0 +1,39 @@
+Obsidian is fundamentally just a text editor that saves everything into a folder of plain **Markdown (****.md****) ****files** on your computer. Because it's just raw text, it is the perfect playground for AI.
+
+Here is exactly how people are using them together to build apps and manage massive projects without hitting Claude's limits.
+
+**1. ****Using**** ****Obsidian**** ****as**** ****Claude’s**** "****External**** ****Memory****"**
+
+Remember how Claude forgets everything unless you paste it back into a chat, which burns up your token limit?
+
+By using **Claude ****Code** (Anthropic's terminal tool) or plugins inside Obsidian, you point Claude directly at your Obsidian folder (called a "Vault").
+
+- Instead of re-pasting your code into a chat window every time, Claude just reads the text files directly from your computer.
+
+- It allows you to use a special file at the root of your folder called **CLAUDE.md**. This file acts as Claude’s instructions and permanent memory. It lists your app's rules, your API keys, your current bugs, and what you want to build next. Every time you start a session, Claude reads that single file and instantly knows *exactly* where you left off.
+
+**2. ****Breaking**** Down ****the**** ****App**** ****into**** a "****Second**** ****Brain****"**
+
+When you build an app with zero coding skills, your biggest enemy is chaos. If you have 5 different files for your frontend, backend, and API connections, a browser chat window gets messy fast.
+
+In Obsidian, developers use a framework called **PARA** (Projects, Areas, Resources, Archives) to organize everything:
+
+- **Projects**** ****Folder****:** Holds your active code files (index.html, server.js).
+
+- **Resources**** ****Folder****:** Holds your text guides (e.g., you can copy and paste the Sightengine API documentation into a note here).
+
+- **Daily ****Notes****:** A daily log where you type out what you did.
+
+Because it's all structured, you can tell Claude: *"**Look** **at** **the** API **documentation** in **my** **Resources** **folder**, and **use** it **to** update **the** server **code** in **my** **Projects** **folder**."* Claude does the job in seconds because it doesn't have to guess where anything is.
+
+**3. ****How**** it ****Saves**** ****Your**** ****Limits**** (Prompt ****Caching****)**
+
+When you use Claude inside your local Obsidian environment, it utilizes a feature called **Prompt**** ****Caching**.
+
+Instead of charging you full price to re-read your entire app code every single time you press enter, Claude "freezes" your project structure in its memory. It only charges you for the tiny new question you just asked. This reduces your token usage by up to 70%, meaning your Claude Pro account lasts drastically longer.
+
+**Should**** ****you**** ****use**** ****Obsidian**** ****for**** ****this**** project?**
+
+**If**** ****you**** ****want**** ****to**** ****keep**** it ****simple****:** You don’t *have* to use Obsidian. Using Claude's standard web browser interface with the **Projects** and **Artifacts** features is perfectly fine for a small app, and it's much easier to learn on day one.
+
+**If**** ****you**** ****want**** ****to**** ****feel**** ****like**** a pro:** Setting up an Obsidian vault for your app is an incredible superpower. It gives you a clean workspace on your computer where you can see your notes on one side, your code in the middle, and Claude working in a terminal window right underneath it.

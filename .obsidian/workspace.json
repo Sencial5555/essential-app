@@ -1,0 +1,236 @@
+{
+  "main": {
+    "id": "b3fe2e1b11acfb61",
+    "type": "split",
+    "children": [
+      {
+        "id": "5072ebe0c3d62e5b",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "1e7d6367d0cb575c",
+            "type": "leaf",
+            "state": {
+              "type": "graph",
+              "state": {},
+              "icon": "lucide-git-fork",
+              "title": "Graph view"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "27e302599c7d4e94",
+    "type": "split",
+    "children": [
+      {
+        "id": "2624c39b00f1a7c7",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "b79a68531da23ba3",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "9166ddc2b09d693d",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "7ecbc633b3cbe176",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "5d4d317830c4125b",
+    "type": "split",
+    "children": [
+      {
+        "id": "40a750658d9a4d3b",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "3578e8f5d11070f9",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "wiki/entities/Essential.md",
+                "collapseAll": true,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks for Essential"
+            }
+          },
+          {
+            "id": "6afd80f9daf411fa",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "wiki/entities/Essential.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links from Essential"
+            }
+          },
+          {
+            "id": "8fbe266b757bd480",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "db3567fb426b98f5",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "All properties"
+            }
+          },
+          {
+            "id": "2de2483a0707e529",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "wiki/entities/Essential.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Outline of Essential"
+            }
+          },
+          {
+            "id": "33b34c9367fae93c",
+            "type": "leaf",
+            "state": {
+              "type": "claudian-view",
+              "state": {},
+              "icon": "bot",
+              "title": "Claudian"
+            }
+          }
+        ],
+        "currentTab": 5
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false,
+      "bases:Create new base": false,
+      "realclaudian:Open Claudian": false
+    }
+  },
+  "active": "1e7d6367d0cb575c",
+  "lastOpenFiles": [
+    "index.html.tmp.15796.9489c87be7a2",
+    "index.html.tmp.15796.65a31466ad68",
+    "index.html.tmp.15796.5374eeeaaa36",
+    "index.html.tmp.15796.581ff4e22ea8",
+    "index.html.tmp.15796.9433b0dc6859",
+    "index.html.tmp.15796.9909fa790c86",
+    "index.html",
+    "index.html.tmp.15796.e71ad188e3dd",
+    "wiki/entities/Essential.md",
+    "wiki/index.md",
+    "wiki/concepts/API Cost Trap.md",
+    "wiki/concepts/AI Image Detection.md",
+    "wiki/log.md.tmp.18072.4dc4e09753c2",
+    "wiki/index.md.tmp.18072.b605c5c52260",
+    "wiki/overview.md.tmp.18072.e5d90af8ca72",
+    "wiki/concepts/Fresh Chat Rule.md",
+    "wiki/concepts/Deployment Workflow.md",
+    "wiki/concepts/Build in Public.md",
+    "wiki/concepts/Mock API Testing.md",
+    "wiki/concepts/Trust and Credibility Strategy.md",
+    "wiki/concepts/Dual-Screen Workspace.md",
+    "wiki/concepts/PARA Framework.md",
+    "wiki/concepts/Custom Slash Commands.md",
+    "wiki/concepts/Prompt Caching.md",
+    "wiki/concepts/Claude Token Limits.md",
+    "wiki/concepts/Scale Economics.md",
+    "wiki/concepts/Monetization Models.md",
+    "wiki/concepts/Brand Identity.md",
+    "wiki/concepts/Marketing Strategy.md",
+    "wiki/concepts/MVP.md",
+    "wiki/concepts/Build Phases.md",
+    "wiki/entities/Google Cloud AI.md",
+    "wiki/entities/AWS Rekognition.md",
+    "wiki/entities/Render.md",
+    "wiki/entities/Claude Code.md",
+    "wiki/entities/Supabase.md",
+    "Untitled 3.canvas",
+    "Untitled 2.canvas",
+    "Untitled 1.canvas",
+    "Untitled.canvas"
+  ]
+}

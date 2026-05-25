@@ -1,0 +1,37 @@
+**The ****Default**** ****Dual-Screen**** ****Layout**** (****For**** ****Every**** ****Phase****)**
+
+Split your computer screen right down the middle into two halves:
+
+- **Left**** ****Half**** of ****Screen****:** **Obsidian** (Your project brain, rules, and CLAUDE.md).
+
+- **Right ****Half**** of ****Screen****:** **Cursor** (Your code workbench).
+
+Inside Cursor, you will open its built-in terminal at the bottom and type claude to start **Claude ****Code** right there.
+
+**Window**** ****Setup**** ****Breakdown**** ****by**** ****Phase**
+
+**Phase**** 1: The Visual Shell (Design ****Focus****)**
+
+In this phase, you are only building the look of the app. You don't need the background engine yet.
+
+- **Window**** 1 (****Left****):** **Obsidian** open to your CLAUDE.md blueprint so you can easily copy instructions.
+
+- **Window**** 2 (Right):** **Cursor** with the **Composer**** panel** (Ctrl+I / Cmd+I) open. You will type your design prompts directly into Cursor's AI chat, and watch it generate the HTML and Tailwind CSS layout in real-time.
+
+- *Note**:* Keep a basic Google Chrome browser tab hidden in the background just to double-click and open your index.html file so you can see your beautiful website design update.
+
+**Phase**** 2 ****&**** 3: The ****Engine**** ****&**** ****Database**** (****Autonomous**** ****Coding**** ****Focus****)**
+
+Now you are making the buttons work, connecting the AI API, and setting up the digital filing cabinet. This is where you let the AI take the wheel.
+
+- **Window**** 1 (****Left****):** **Obsidian** open to your API documentation notes or database rules.
+
+- **Window**** 2 (Right):** **Cursor**, but this time you slide open the **Terminal ****window**** ****at**** ****the**** ****bottom** of the screen. You launch **Claude ****Code** inside that terminal.
+
+- *How** it **looks**:* You type your high-level goal into the bottom terminal (e.g., /goal "Connect the database"), and you simply watch the top half of Cursor automatically open, write, and save files like a ghost is typing on your keyboard.
+
+**Why**** ****the**** "Basic Claude Browser ****App****" is ****Your**** Backup**
+
+You mentioned having the standard Claude website open in Chrome. Keep this as a **separate**** ****emergency**** ****room**** ****tab**.
+
+If you ever get stuck on a really annoying bug that Cursor or Claude Code can't seem to solve after two tries, copy the broken code block, paste it into the Claude Browser App, and say: *"**My** local AI **tools** **are** **stuck** in a **loop** **trying** **to** **fix** **this**. **Look** **at** **this** **with** **fresh** **eyes** and **tell** me **exactly** **what** **the** **error** **means**."* Once it gives you the answer, type that fix back into Cursor.

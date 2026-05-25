@@ -1,0 +1,38 @@
+ode.js was the *only* technical dependency you had to manually install on your computer.
+
+You do not download HTML, CSS, Tailwind, or your database. To your computer, these are either just basic text files or services that live completely on the internet.
+
+Here is the exact breakdown of why you don't need to download them and how they actually get into your project:
+
+**1. HTML ****&**** CSS (****Built**** ****into**** ****every**** ****computer****)**
+
+You cannot download HTML or CSS because they aren't programs—they are just **languages**.
+
+- Every web browser in the world (Google Chrome, Safari, Microsoft Edge) is already born with the ability to read HTML and CSS.
+
+- To "use" them, Claude will simply create a normal text file inside Cursor and name it index.html. The moment you type text into that file, you are using HTML.
+
+**2. ****Tailwind**** CSS (The ****Cloud**** ****Delivery****)**
+
+You don't download Tailwind onto your hard drive either. Instead, Claude will put a single, special link at the top of your HTML file (called a CDN link).
+
+- When a user opens **Essential**, their web browser reads that link and instantly grabs Tailwind’s styling rules from the cloud in a fraction of a second. It requires zero setup from you.
+
+**3. The ****Database**** (****Lives**** ****on**** ****the**** Internet)**
+
+In the old days of programming, you did have to download massive, heavy database software to your computer. In 2026, we don't do that anymore.
+
+- Your database will live entirely in the cloud on a secure, free platform (like **Supabase** or **Firebase**).
+
+- You will just sign up for a free account on their website, and **Claude ****Code** will write a few lines of code that tell your app how to send data to that website over the internet. Your computer stays completely clean.
+
+**What**** ****your**** ****computer**** ****actually**** ****looks**** ****like**** ****right**** ****now**
+
+To prove how simple this is, this is the complete list of everything that needs to be downloaded onto your actual physical computer for this entire project:
+
+| **What**** ****you**** ****download** | **What**** it ****does** | **Cost** |
+| --- | --- | --- |
+| **Google ****Chrome** | To browse the web and look at your app. | Free |
+| **Obsidian** | To hold your project notes and CLAUDE.md blueprint. | Free |
+| **Cursor** | The visual workspace where you look at your files. | Free |
+| **Node.js** | The behind-the-scenes engine that lets Claude Code run. | Free |

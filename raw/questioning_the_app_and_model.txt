@@ -1,0 +1,41 @@
+**People**** ****will**** ****absolutely**** ****question**** ****accountability**** and ****trust****.** If users think a random person with zero coding experience built the "brain" of the app from scratch, they will assume it is inaccurate, unsafe, and unreliable.
+
+But you aren't going to lie to them, and you aren't going to hide how it works. Instead, you are going to leverage **the**** ****transparent**** ****corporate**** ****shield**** ****strategy**.
+
+**1. ****You**** ****Don't**** ****Claim**** ****the**** "****Brain****" ****as**** ****Your**** ****Own**
+
+When you pitch the app, you don't say, *"**Look** **at** **this** AI **detector** I **invented**."* You say, *"**Look** **at** **this** **easy** mobile **wrapper** I **built** **that** **connects** **you** **to** **the** **world’s** most **accurate** **enterprise** AI-**detection** **networks**."*
+
+Think of your app like a **high****-end ****cocktail**** bar**. The bartender didn't distill the vodka, grow the limes, or build the glass. They combined premium, trusted ingredients into a convenient, beautiful experience that people gladly pay for.
+
+On your app’s "About" page, FAQ, or app store description, you clearly state:
+
+*"**Powered** **by** **enterprise-grade** **detection** **infrastructure** **trusted** **by** top **tech** **firms** **to** **scan** **millions** of **images** **daily**."*
+
+**2. ****Borrowing**** ****Credibility**** (The API ****Advantage****)**
+
+If a user asks, *"**Why** **should** I **trust** **your** **app**?"* you point directly to your backend API partner (like Hive Moderation or Sightengine).
+
+These are multi-million dollar companies with teams of data scientists who update their detection models constantly to spot the newest AI generators. By using their API, you inherit their credibility.
+
+- Your app isn't reliable because *you* are a genius coder.
+
+- Your app is reliable because *Hive** **Moderation* or *Sightengine* is a genius company, and you built the perfect bridge for everyday mobile users to access it.
+
+**3. ****Transparency**** ****Is**** a Marketing ****Superpower**
+
+The "Zero-Coding Skills" story is your hook to get people in the door, but **the**** ****tech**** ****stack** is why they stay. When you are "Building in Public" on Reddit or X, use this exact framing to turn your lack of skills into a trust factor:
+
+*"**Hey** **guys**, I **have** **zero** **coding** **skills**, **which** is **exactly** **why** I **didn't** **try** **to** **build** **my** **own** AI-**detection** **model**—it **would** **have** **been** **terrible**. **Instead**, I **used** Claude **to** **build** a **flawless** mobile **interface** **that** **plugs** **directly** **into** **enterprise** **APIs** **like** **Sightengine**, **which** **platforms** **use** **globally**. I **handle** **the** design and **convenience**; **they** **handle** **the** **heavy-duty** **data** **science**."*
+
+This level of honesty actually *increases* trust. It shows you understand your limits and chose a professional, secure route rather than trying to fake it.
+
+**How**** ****to**** ****Present**** ****This**** ****on**** ****Your**** ****App's**** ****Landing**** ****Page**
+
+To make sure your app looks authoritative and trustworthy from day one, have Claude design a "Trust Section" on the main page.
+
+**The "****Trust**** ****Layout****" Prompt ****for**** Claude:**
+
+*"**Create** a **small** '**Trust** **&** **Reliability**' **section** **for** **my** mobile **landing** **page**. **Use** **Tailwind** CSS. It **should** **feature** **bullet** **points** **explaining** **that** **the** **app** **uses** **secure** SSL **encryption**, **never** **stores** **user** **data** **permanently**, and **processes** **all** **images** **through** **industry-leading**, **enterprise-grade** AI **detection** **infrastructure** **with** a 99% **uptime** **guarantee**."*
+
+By putting the focus on the **security**** of ****your**** ****setup** and the **power**** of ****your**** ****partner's**** API**, your lack of personal coding skills ceases to be a risk—it becomes an inspiring backstory.

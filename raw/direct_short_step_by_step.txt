@@ -1,0 +1,27 @@
+**Step**** 1: ****Environment**** ****Setup**** (****Obsidian**** ****&**** Claude ****Code****)**
+
+You download Obsidian for free and create a local folder on your computer named after your app. Open this folder as an Obsidian vault. Next, you open your terminal inside this exact folder and launch **Claude ****Code**. This initializes the physical and digital workspace where your app will be born.
+
+**Step**** 2: ****Knowledge**** Ingestion (The ****Karpathy**** ****Wiki****)**
+
+You run the Karpathy LLM Wiki prompt inside Claude Code to automatically generate your raw/ and wiki/ folders, alongside your CLAUDE.md control file. You then use a web clipper to save your app ideas, feature goals, and the Sightengine/Hive API developer documentation straight into the raw/ folder. You tell Claude Code to ingest it all. This creates a permanent, deeply indexed "second brain" for your project that cuts down Claude’s token usage and prevents it from forgetting your goals.
+
+**Step**** 3: Frontend Design (****Cursor**** ****&**** ****Tailwind**** CSS)**
+
+You close the terminal and open your project folder inside **Cursor** so you have a beautiful visual interface. You trigger Cursor’s Composer Mode and instruct it to build a single-page, mobile-responsive UI using HTML and Tailwind CSS. Claude will build a modern, dark-themed interface centered around a prominent image upload button and a clean results dashboard.
+
+**Step**** 4: Backend ****&**** AI ****Brain**** ****Integration**
+
+You open the terminal at the bottom of Cursor and hand the reins back to **Claude ****Code**. You command it to write a lightweight server script (like Node.js or Python). This backend acts as a secure bridge: it takes the image uploaded by your mobile frontend, securely passes it to your chosen AI-detection API using your hidden developer keys, extracts the percentage score, and passes it back to the mobile screen.
+
+**Step**** 5: ****Monetization**** ****&**** ****Paywall**** ****Setup**
+
+You sign up for a free merchant account on Stripe or Lemon Squeezy and generate a payment link for a credit pack (e.g., $4.99 for 100 scans). You have Cursor design a premium paywall overlay that triggers when a user hits their free limit. You then have Claude Code write a webhook script that listens for successful payment notifications from Stripe and instantly increments the user's scan credits in your database.
+
+**Step**** 6: Testing ****&**** Cost ****Guardrails**
+
+Before putting anything online, you tell Claude Code to implement strict defensive coding rules. You have it write hard rate-limits on the backend to ensure an unauthenticated user or automated bot can never spam your upload button and drain your API budget. You run simulated upload and payment tests directly inside your terminal to ensure everything unlocks smoothly.
+
+**Step**** 7: ****Deployment**** ****&**** ****Launch**** (****GitHub**** ****&**** ****Vercel****)**
+
+With the app working locally, you tell Claude Code to initialize a Git repository and push your clean codebase up to a private **GitHub** account. You then log into **Vercel** or **Render**, link it to that GitHub repository, and click deploy. Within seconds, your app is live on a real URL, fully optimized for mobile browsers, and ready for you to market on TikTok, X, Reddit, and LinkedIn.

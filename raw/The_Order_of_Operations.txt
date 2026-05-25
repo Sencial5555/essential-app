@@ -1,0 +1,41 @@
+**The ****Order**** of ****Operations****: ****What**** ****to**** ****Do**** and ****When**
+
+You don't build everything at once. You build your web app layer by layer, just like a house.
+
+**Phase**** 1: The Visual Shell (HTML ****&**** ****Tailwind**** CSS)**
+
+- **When****:** Your very first Saturday session.
+
+- **How**** ****you**** ****manage**** it:** You don't open a blank file and try to type. You open **Cursor**, hit Ctrl+I (or Cmd+I) to open the AI Composer, and use your CLAUDE.md file as the rulebook.
+
+- **Your**** ****prompt**** ****to**** ****the**** AI:** > *"**Based** **on** **our** CLAUDE.md file, **create** a **beautiful**, **dark-themed** HTML file **using** **Tailwind** CSS **for** '**Essential**'. **Build** **the** **large** centered image **upload** **box**, **the** **light**/**dark** **mode** **toggle**, and **the** **sleek** **usage** **progress** bar **underneath**. **Make** **sure** it **looks** **flawless** **on** a mobile **screen** **mockup**."*
+
+- **The ****Result****:** Cursor will automatically create your index.html file. You will instantly see your website's layout on your screen. No Node.js or databases required yet.
+
+**Phase**** 2: The ****Core**** ****Engine**** (Node.js)**
+
+- **When****:** The second weekend.
+
+- **How**** ****you**** ****manage**** it:** Once you love how the website looks, you need to give it an engine so the buttons actually work. You open the terminal at the bottom of Cursor and launch **Claude ****Code**.
+
+- **Your**** ****prompt**** ****to**** ****the**** AI:** > `/goal "Initialize a Node.js backend server for our project. Write the code to link our HTML upload button to the server, and connect the server to the Sightengine AI API so it can process images."*
+
+- **The ****Result****:** Claude Code will autonomously open your computer's terminal, install Node.js packages behind the scenes, write a script file (like server.js), and securely link your visual buttons to the AI brain over the internet.
+
+**Phase**** 3: The ****Filing**** ****Cabinet**** (****Database****)**
+
+- **When****:** The third weekend.
+
+- **How**** ****you**** ****manage**** it:** Now your app looks great and can scan images, but it needs to remember who your users are and how many scans they have left. You go back to **Claude ****Code**.
+
+- **Your**** ****prompt**** ****to**** ****the**** AI:**
+
+`/goal "Set up a lightweight, free database (like Supabase or SQLite) to store user profiles. Write the logic so that when a user logs in, the server checks the database to update their subscription progress bar."*
+
+- **The ****Result****:** Claude Code will write the lines of code that securely speak to a digital filing cabinet, tracking user credits completely automatically.
+
+**How**** ****to**** ****Avoid**** ****Moving**** ****Too**** ****Fast**
+
+The biggest mistake beginners make is trying to handle Node.js, databases, and design all in the same afternoon. That is how code breaks and you get hit with Claude limits.
+
+Right now, **forget**** ****about**** Node.js and ****Databases**** ****entirely****.** They do not exist to you this week. Your only focus is Phase 1: getting a beautiful, interactive layout on your computer screen that you can look at.

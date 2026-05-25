@@ -1,0 +1,105 @@
+Here is the exact foundational code for your **CLAUDE.md** file.
+
+This file acts as the official behavioral contract and blueprint for Claude Code and Cursor. The moment you launch a new session, the AI will read this file and instantly understand the exact design rules, technology choices, subscription logic, and security configurations we’ve planned, eliminating any accidental hallucination or memory loss.
+
+Copy and paste this text directly into a file named **CLAUDE.md** at the very top (root) of your project folder:
+
+Markdown
+
+																# Project Essential - Behavioral Contract & Blueprint
+
+																
+
+																## WHY: Project Vision & Context
+
+																"Essential" is a modern, premium, mobile-responsive web app designed to act as a clear lens for a synthetic world, helping users distinguish real images from AI-generated media. 
+
+																* **Motto:** Essential. For everyday use.
+
+																* **Core Philosophy:** "Calm Design" — absolute minimalism, extreme speed, zero clutter, and high transparency.
+
+																
+
+																---
+
+																
+
+																## WHAT: Technology Stack & Core Features
+
+																* **Frontend:** Single-page mobile-first UI using HTML5, Tailwind CSS, and vanilla JavaScript. Dark mode by default with a global Light Mode toggle.
+
+																* **Backend:** Lightweight Node.js (Express) backend acting as a secure API bridge.
+
+																* **AI Engine:** Sightengine or Hive Moderation API (Image/Frame detection endpoints).
+
+																* **Monetization:** Stripe Checkout subscription engine with backend webhook validation.
+
+																* **Deployment:** Hosted on Vercel, integrated via GitHub version control.
+
+																* **Project Architecture:** Karpathy LLM Knowledge Wiki style. Source information lives in `raw/`, processed structures map to `wiki/`.
+
+																
+
+																---
+
+																
+
+																## HOW: Critical Coding & UI Standards
+
+																
+
+																### 1. Visual Layout Requirements
+
+																* **The Centerpiece:** A prominent, centrally located, rounded drop-zone box (`border-dashed`, `rounded-2xl`) for instant image uploads or opening the device's native camera roll.
+
+																* **The Progress Bar:** Directly below the upload box, render a highly visual, transparent subscription usage progress bar (e.g., "3 of 3 free scans remaining" or "84 of 500 premium scans used").
+
+																* **Scanning Animation:** While waiting for the AI API response (1-2 seconds), animate a glowing, neon horizontal laser line moving vertically across the thumbnail wrapper.
+
+																* **Traffic-Light Results:** Output processing scores using vivid color states: Soft Green for verified safe/human, Amber for suspicious elements, and Deep Crimson/Ruby for high-probability AI generation.
+
+																
+
+																### 2. Authentication & Paywall Logic ("Hook First, Lock Second")
+
+																* **First Scan:** Allow anonymous unauthenticated visitors to upload and scan exactly one image. 
+
+																* **The Gate:** Blur the results of the initial scan and overlay a beautiful modal requiring a frictionless Social Login (Google or Apple One-Tap biometrics). Passwords are strictly prohibited.
+
+																* **Subscription Check:** Access to subsequent scans requires an active Stripe subscription. If the user runs out of monthly quota, trigger the premium subscription paywall block.
+
+																
+
+																### 3. Financial & Security Guardrails
+
+																* **Rate Limiting:** Implement strict backend rate-limiting (`express-rate-limit`) on the image upload endpoint to prevent unauthorized automated bots from spamming the API and draining our credit balance.
+
+																* **Credential Safety:** Never hardcode API keys, Stripe webhook secrets, or environmental tokens directly into frontend or backend files. Read exclusively from process environment variables (`process.env`).
+
+																
+
+																---
+
+																
+
+																## Architectural Workflows for Claude Code
+
+																* **Explore First:** Before modifying or writing core functionality, always search the local codebase or query the `wiki/` documentation links. 
+
+																* **Incremental Commits:** Commit code changes to Git atomically—one isolated file change per commit with concise, clear developer logs.
+
+																* **Token Preservation:** Maintain compact index summaries within the wiki file paths. Follow progressive disclosure paths to minimize context window bloat.
+
+**What**** ****to**** ****do**** ****next****:**
+
+- Save this file into your project folder.
+
+- Open your terminal inside that folder.
+
+- Type claude to start **Claude ****Code** (or open it inside **Cursor**).
+
+- Type your very first command:
+
+claude /goal "Read CLAUDE.md and generate the foundational index.html frontend file with our dark-themed, centered dropzone layout and Tailwind CSS layout."
+
+Your AI engineering assistant will read the contract, take the wheel, and start crafting **Essential** exactly as you envisioned it.

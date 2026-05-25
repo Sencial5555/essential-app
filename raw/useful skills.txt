@@ -1,0 +1,41 @@
+In Claude Code, you create these by making a .claude/commands/ directory and dropping simple Markdown files inside them (like design.md). From that point forward, you can just type a quick slash command like /design in your terminal, and Claude instantly loads your entire rulebook.
+
+To build **Essential** effectively around a busy school schedule, these are the four custom skills you should have Claude set up for you:
+
+**1. ****/design**** (The Tailwind Guardrail)**
+
+When building your visual shell, AI can sometimes over-complicate things, adding weird colors or moving items out of alignment. This skill forces Claude to strictly adhere to the "Calm Design" rules you established.
+
+- **What it does:** Instantly locks Claude into mobile-responsive layouts, Tailwind utility styles, rounded buttons (rounded-2xl), and smooth light/dark mode transitions.
+
+- **Why it saves you time:** You will never have to manually correct Claude for making a button too sharp, using an ugly blue, or breaking the layout on a mobile screen. It will get it right on the first try.
+
+**2. ****/mock-api**** (The Playground Simulator)**
+
+Connecting to real APIs (like Sightengine or Hive) can be stressful when you're starting out because every time you run a test, you use up your free API credits.
+
+- **What it does:** Instructs Claude Code to write a temporary backend simulation that "fakes" a successful AI image scan. When you upload an image, it instantly spits back a random percentage (e.g., *“64% AI Generated”*) without actually calling the real internet server.
+
+- **Why it saves you time:** You can build, smash, test, and style your front page all afternoon on a Tuesday night without spending a single penny or wasting real API limits. You only swap to the real API when the app looks beautiful.
+
+**3. ****/review**** (The School-Session Resume)**
+
+Because you have to stop coding on Sunday night to focus on school, you need a way to instantly hand the context back to Claude next weekend without spending 20 minutes re-explaining where you left off.
+
+- **What it does:** Commands Claude Code to scan your entire directory, read your updated CLAUDE.md, analyze the local Git commits, and print a clean developer update right in the terminal.
+
+- **Why it saves you time:** On Saturday morning, you don't have to remember anything. You open the terminal, type /review, and Claude will say: *“Welcome back. Last weekend we finished the upload box. Right now, the Stripe webhook script is half-written but throwing an error on line 12. Should we fix that now?”*
+
+**4. ****/security-check**** (The Budget ****&**** Key Protector)**
+
+As a student founder, the scariest thing that can happen is accidentally leaking your private Stripe or AI API keys on the internet, or building an upload button that a bot can spam, costing you real money.
+
+- **What it does:** Forces Claude to run a strict diagnostic scan across your backend code files. It checks if you accidentally hardcoded any private passwords, confirms that your .env (hidden environment files) are safe, and checks that your rate-limiters are properly protecting your server.
+
+- **Why it saves you time:** It acts as your automated security engineer. Before you push your code to GitHub or deploy it live on Vercel, running this command gives you absolute peace of mind that your wallet and data are completely safe.
+
+**How to create your first skill:**
+
+When you have Cursor open this weekend, open your terminal at the bottom and simply type:
+
+claude "Create a new custom skill file in our repository for /design that forces all HTML layouts to follow our premium, mobile-first, dark-themed Tailwind CSS rules."

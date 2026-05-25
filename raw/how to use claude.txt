@@ -1,0 +1,30 @@
+1. The Development Environment (The Builders)
+Claude Code (Your Terminal Engineer)
+•	What it is: Anthropic’s official agentic command-line system that runs locally in your terminal.
+•	How it helps Essential: Instead of copy-pasting code fragments into a browser, you type high-level commands like claude "connect the upload button to the Sightengine API and run a script to test it". It reads your files, writes the backend scripts, catches its own bugs, and uses Git to save the progress automatically.
+•	Pro-Tip (Agent Teams): You can instruct Claude Code to spawn background agent teams. A "lead agent" will coordinate while sub-agents work on your database setup and your user interface simultaneously.
+Claude in Chrome (The Visual Debugger)
+•	What it is: A browser extension that acts as a direct bridge to Claude Code.
+•	How it helps Essential: Web apps inevitably encounter bugs where a button clicks but nothing happens. Claude in Chrome reads your live browser console errors, inspects network requests, and scans the visual DOM layout. If your theme-switcher or your image upload box freezes, Claude looks at the live site and applies the fix directly.
+2. Structure & Organization (The Brains)
+Projects & Cowork (Persistent Workspaces)
+•	What it is: Dedicated, isolated workspaces on the Claude web/desktop app.
+•	How it helps Essential: Instead of starting an empty chat every day, a Project lets you pin your CLAUDE.md blueprint, API documentation, and folder maps permanently. Any sub-chats you or your classmates create within this Project inherit the exact same knowledge base, preventing the AI from losing context.
+Artifacts (The Interactive Sandbox)
+•	What it is: A dedicated visual window separate from your chat history where Claude renders live code and UI designs.
+•	How it helps Essential: When you are tweaking the light/dark mode design or building the subscription progress bar, Claude displays a live, clickable preview right next to your chat. You can click on it, toggle the buttons, and interact with the interface before deploying it to Vercel. It also includes up to 20MB of persistent storage to test saving user data across sessions.
+3. Automation & Custom Workflows (The Optimizers)
+Model Context Protocol (MCP) (The Universal Connector)
+•	What it is: An open standard that gives Claude a "universal remote" to securely connect to external tools and filesystems.
+•	How it helps Essential: You can plug open-source MCP servers into Claude. For example, by connecting a Perplexity MCP server, Claude can search the live web to double-check the latest Stripe integration updates, or pull your project notes straight out of Google Drive without manual file uploads.
+Custom Skills & Routines
+•	What it is: The ability to teach Claude repeatable shortcuts and background automated behaviors.
+•	How it helps Essential: You can script custom terminal commands like /test-paywall or /deploy. Furthermore, you can schedule background routines on Anthropic's cloud infrastructure that will automatically run system lint checks, scan your app for vulnerabilities, or update dependencies—even when your laptop is completely shut off while you are at school.
+4. Compute & Intelligence Controls (The Engine)
+Adaptive Reasoning (Internal Extended Thinking)
+•	What it is: A mechanism where Claude dynamically evaluates problem complexity and allocates internal computing power to think before it answers.
+•	How it helps Essential: For a simple task like styling a button, Claude skips long thinking blocks to save you latency. But if you ask it to handle complex cryptographic logic for validating a Stripe subscription webhook, it scales up to high or maximum effort. It reads your files, reflects on security vulnerabilities, rewrites its internal logic, and catches edge cases before generating a single line of terminal code.
+Context Compaction
+•	What it is: An automatic context management tool built into the API.
+•	How it helps Essential: As you build, conversations get incredibly long, which eats up your usage limits. Context compaction automatically summarizes older parts of your long coding sessions, preserving your app instructions while drastically reducing token costs and preventing the system from freezing up on massive tasks.
+

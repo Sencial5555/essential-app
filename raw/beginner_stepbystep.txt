@@ -1,0 +1,17 @@
+**Step**** 1: ****Build**** ****the**** Visual ****Prototype**
+
+Start by getting the layout right. You can use Claude's "Artifacts" feature to see the app live as it code it.
+
+**Prompt**** ****to**** Claude:** *"I **want** **to** **build** a mobile-**optimized** web **app** **where** **users** **can** **upload** an image **to** **check** **if** **it's** AI-**generated**. **Act** **as** an **expert** frontend **developer** and **write** a **single**-file HTML **app** **using** **Tailwind** CSS **for** **styling**. **Make** it **look** modern, **dark-themed**, and **perfectly** **sized** **for** a mobile **screen**. **Include** an image **upload** **area** and a **placeholder** **for** **where** **the** **results** **will** go."*
+
+**Step**** 2: ****Set**** ****Up**** ****the**** Backend ****&**** AI ****Brain**
+
+Once you like how it looks, you need to connect it to an API. Sign up for a free developer account at a service like Sightengine to get an API key. 
+
+**Prompt**** ****to**** Claude:** *"**Now** **that** **the** frontend is **done**, I **need** a **simple** Node.js backend. I am **using** **the** **Sightengine** AI-**Generated** Image **Detection** API. **Write** **the** server **code** **to** **securely** **take** **the** image **uploaded** **from** **my** frontend, **send** it **to** **Sightengine**, **extract** **the** AI **probability** **score**, and **send** it back **to** **the** mobile **screen**."*
+
+**Step**** 3: ****Deploying**** It ****to**** ****the**** ****Cloud**
+
+Claude can act as your tech support to put the app online so you can open it on your phone.
+
+**Prompt**** ****to**** Claude:** *"I **have** **zero** **coding** **skills** and **don't** **know** **how** **to** **publish** **this**. **Walk** me **step-by-step** **through** **how** **to** **deploy** **my** frontend and backend **for** free **on** a platform **like** **Vercel** **or** **Render** **using** a **GitHub** account."*
