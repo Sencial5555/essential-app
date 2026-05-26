@@ -1114,6 +1114,7 @@
     let scansRemaining = 3;
     let selectedFile = null;
     let scanTimer = null;
+    let pendingScanScore = null;
 
     // ── DOM refs ───────────────────────────
     const uploadZone       = document.getElementById('upload-zone');
@@ -1180,6 +1181,50 @@
       setState('IDLE');
     }
 
+    // ── Real scan via API ──────────────────
+    async function runScan() {
+      try {
+        const form = new FormData();
+        if (selectedFile) {
+          form.append('media', selectedFile);
+        } else if (thumb.src && thumb.src.startsWith('blob:')) {
+          const blob = await (await fetch(thumb.src)).blob();
+          form.append('media', blob, 'image.jpg');
+        } else if (thumb.src && (thumb.src.startsWith('http://') || thumb.src.startsWith('https://'))) {
+          form.append('url', thumb.src);
+        } else {
+          // Demo mode fallback (no real image)
+          useDemoResult();
+          return;
+        }
+
+        const res = await fetch('/api/scan', { method: 'POST', body: form });
+        if (!res.ok) throw new Error('API error');
+        const { type, score } = await res.json();
+
+        stopScanStages();
+        if (scansRemaining > 0) {
+          pendingScanScore = score;
+          setState('RESULT_' + type.toUpperCase());
+        } else {
+          setState('LOGIN_GATE');
+        }
+      } catch {
+        // Fallback to demo if API unavailable
+        useDemoResult();
+      }
+    }
+
+    function useDemoResult() {
+      stopScanStages();
+      if (scansRemaining > 0) {
+        const seq = ['RESULT_HUMAN', 'RESULT_AI', 'RESULT_SUSPICIOUS'];
+        setState(seq[(3 - scansRemaining) % seq.length]);
+      } else {
+        setState('LOGIN_GATE');
+      }
+    }
+
     // ── State machine ──────────────────────
     function setState(state) {
       currentState = state;
@@ -1239,15 +1284,7 @@
           resultCard.classList.remove('blurred');
           uploadZone.onclick = null;
           startScanStages();
-          scanTimer = setTimeout(() => {
-            stopScanStages();
-            if (scansRemaining > 0) {
-              const seq = ['RESULT_HUMAN','RESULT_AI','RESULT_SUSPICIOUS'];
-              setState(seq[(3 - scansRemaining) % seq.length]);
-            } else {
-              setState('LOGIN_GATE');
-            }
-          }, 2400);
+          runScan();
           break;
 
         case 'RESULT_HUMAN':
@@ -1444,10 +1481,12 @@
           </div>
         </div>
       `;
-      // Count-up score
+      // Count-up score — use real API score if available
+      const displayScore = pendingScanScore !== null ? pendingScanScore : c.score;
+      pendingScanScore = null;
       const ms = document.getElementById('mobile-result-score');
-      if (ms) countUp(ms, c.score);
-      renderPanelResult(type);
+      if (ms) countUp(ms, displayScore);
+      renderPanelResult(type, displayScore);
     }
 
     const panelResultConfigs = {
@@ -1456,9 +1495,10 @@
       ai:         { label: 'AI Generated', color: 'var(--result-crimson)', bg: 'rgba(212,106,94,0.10)', border: 'rgba(212,106,94,0.28)', score: 97, desc: 'High confidence — AI generation signatures detected.' }
     };
 
-    function renderPanelResult(type) {
+    function renderPanelResult(type, overrideScore) {
       const p = panelResultConfigs[type];
       const c = resultConfigs[type];
+      const displayScore = overrideScore !== undefined ? overrideScore : p.score;
       const panelCard     = document.getElementById('panel-result-card');
       const panelLabel    = document.getElementById('panel-result-label');
       const panelBadge    = document.getElementById('panel-result-badge');
@@ -1476,7 +1516,7 @@
       panelBadge.style.borderColor = p.border;
       panelScore.textContent = '0%';
       panelScore.style.color = p.color;
-      countUp(panelScore, p.score);
+      countUp(panelScore, displayScore);
       panelDesc.textContent = p.desc;
       panelCard.style.borderColor = p.border;
 
