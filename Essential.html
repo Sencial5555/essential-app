@@ -964,7 +964,7 @@
         </div>
 
         <!-- Logged-in state -->
-        <div id="panel-auth-user" class="hidden" style="display:flex; flex-direction:column; gap:10px;">
+        <div id="panel-auth-user" class="hidden" style="flex-direction:column; gap:10px;">
           <div style="display:flex; align-items:center; gap:10px;">
             <div style="width:32px; height:32px; border-radius:50%; background:var(--accent-soft); border:1px solid var(--border-subtle); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent-violet)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -1745,6 +1745,9 @@
       await sb.auth.signInWithOAuth({ provider: 'apple', options: { redirectTo: window.location.href } });
     }
     async function signOut() {
+      updateAuthUI(null);
+      scansRemaining = loadAnonQuota();
+      updateProgressBar();
       await sb.auth.signOut();
     }
 
@@ -1834,15 +1837,13 @@
       const emailEl = document.getElementById('panel-user-email');
       if (user) {
         form.classList.add('hidden');
-        userEl.classList.remove('hidden');
         userEl.style.display = 'flex';
         emailEl.textContent = user.email || user.user_metadata?.full_name || '';
         overlayLogin.classList.add('hidden');
         resultCard.classList.remove('blurred');
       } else {
         form.classList.remove('hidden');
-        userEl.classList.add('hidden');
-        userEl.style.display = '';
+        userEl.style.display = 'none';
       }
     }
 
