@@ -1744,7 +1744,7 @@
     );
 
     async function signInWithGoogle() {
-      await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.href } });
+      await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: 'https://essentialai-app.vercel.app/' } });
     }
     async function signInWithApple() {
       await sb.auth.signInWithOAuth({ provider: 'apple', options: { redirectTo: window.location.href } });
