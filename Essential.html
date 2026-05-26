@@ -1848,7 +1848,7 @@
         await loadQuota(session.user.id);
       } else {
         updateAuthUI(null);
-        scansRemaining = 3;
+        scansRemaining = loadAnonQuota();
         updateProgressBar();
       }
     });
