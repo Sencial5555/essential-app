@@ -1276,6 +1276,7 @@
           break;
 
         case 'SCANNING':
+          if (scansRemaining <= 0) { setState('LOGIN_GATE'); break; }
           show(thumb);
           hide(zoneEmptyContent);
           show(removeBtn);
