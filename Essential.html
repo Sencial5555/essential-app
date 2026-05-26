@@ -1683,13 +1683,19 @@
     }
 
     // ── Recent scans (localStorage) ──
-    const HISTORY_KEY = 'essential-scan-history-v1';
+    function historyKey() {
+      return currentUser ? `essential-scan-history-v1-${currentUser.id}` : null;
+    }
     function loadHistory() {
-      try { return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); }
+      const key = historyKey();
+      if (!key) return [];
+      try { return JSON.parse(localStorage.getItem(key) || '[]'); }
       catch { return []; }
     }
     function saveHistory(arr) {
-      try { localStorage.setItem(HISTORY_KEY, JSON.stringify(arr.slice(0, 50))); } catch {}
+      const key = historyKey();
+      if (!key) return;
+      try { localStorage.setItem(key, JSON.stringify(arr.slice(0, 50))); } catch {}
     }
     function pushHistory(type) {
       if (!currentUser) { renderHistory(); return; }
