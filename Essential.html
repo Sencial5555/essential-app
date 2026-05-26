@@ -1883,7 +1883,6 @@
 
     sb.auth.onAuthStateChange(async (event, session) => {
       if (session) {
-        localStorage.removeItem('ess_anon_quota');
         updateAuthUI(session.user);
         await loadQuota(session.user.id);
       } else {
