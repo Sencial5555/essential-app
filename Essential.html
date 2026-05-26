@@ -1850,8 +1850,8 @@
     }
 
     async function saveQuota() {
-      const { data, error } = await sb.rpc('save_quota', { p_remaining: scansRemaining });
-      console.log('saveQuota uid in DB fn:', data, '| error:', error?.message ?? 'none');
+      const { error } = await sb.rpc('save_quota', { p_remaining: scansRemaining, p_uid: currentUser.id });
+      if (error) console.error('saveQuota failed:', error.message);
     }
 
     function loadAnonQuota() {
