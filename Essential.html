@@ -1850,8 +1850,23 @@
     }
 
     async function saveQuota() {
-      const { error } = await sb.rpc('save_quota', { p_remaining: scansRemaining, p_uid: currentUser.id });
-      if (error) console.error('saveQuota failed:', error.message);
+      const { data: { session } } = await sb.auth.getSession();
+      console.log('saveQuota token:', session?.access_token ? 'present' : 'MISSING');
+      if (!session?.access_token) return;
+      const res = await fetch(
+        `https://tjzjwyjggmrcmwawrtpm.supabase.co/rest/v1/scan_quota?user_id=eq.${currentUser.id}`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': 'sb_publishable_E0cyz5LQVlBvKsg9lzDkrg_XtTVdfEH',
+            'Authorization': `Bearer ${session.access_token}`,
+            'Prefer': 'return=minimal'
+          },
+          body: JSON.stringify({ scans_remaining: scansRemaining })
+        }
+      );
+      console.log('saveQuota HTTP:', res.status);
     }
 
     function loadAnonQuota() {
