@@ -28,7 +28,7 @@ export default async function handler(req) {
     return json({ error: sgData.error?.message || 'Sightengine error' }, 502);
   }
 
-  const aiScore = sgData.ai_generated ?? 0;
+  const aiScore = sgData.type?.ai_generated ?? 0;
 
   let type;
   if      (aiScore >= 0.70) type = 'ai';
@@ -41,9 +41,9 @@ export default async function handler(req) {
 
   // Find top detected generator if AI
   let generator = null;
-  if (type !== 'human' && sgData.genai) {
-    const generators = Object.entries(sgData.genai)
-      .filter(([k, v]) => k !== 'ai_generated' && typeof v === 'number' && v > 0.1)
+  if (type !== 'human' && sgData.type?.ai_generators) {
+    const generators = Object.entries(sgData.type.ai_generators)
+      .filter(([, v]) => typeof v === 'number' && v > 0.1)
       .sort(([, a], [, b]) => b - a);
     if (generators.length > 0) generator = generators[0][0];
   }
