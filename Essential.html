@@ -1837,12 +1837,14 @@
       const emailEl = document.getElementById('panel-user-email');
       if (user) {
         form.classList.add('hidden');
+        userEl.classList.remove('hidden');
         userEl.style.display = 'flex';
         emailEl.textContent = user.email || user.user_metadata?.full_name || '';
         overlayLogin.classList.add('hidden');
         resultCard.classList.remove('blurred');
       } else {
         form.classList.remove('hidden');
+        userEl.classList.add('hidden');
         userEl.style.display = 'none';
       }
     }
