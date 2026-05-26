@@ -1197,6 +1197,7 @@
 
     // ── Real scan via API ──────────────────
     async function runScan() {
+      const userAtScanStart = currentUser;
       try {
         const form = new FormData();
         if (selectedFile) {
@@ -1223,7 +1224,8 @@
           pendingScanScore = score;
           pendingGenerator = generator || null;
           setState('RESULT_' + type.toUpperCase());
-          if (currentUser) saveQuota();
+          console.log('scan done, user:', userAtScanStart?.id?.slice(0,8) ?? 'null');
+          if (userAtScanStart) saveQuota(userAtScanStart.id);
           else saveAnonQuota();
         } else {
           currentUser ? setState('PAYWALL') : setState('LOGIN_GATE');
@@ -1235,11 +1237,12 @@
     }
 
     function useDemoResult() {
+      const userAtScanStart = currentUser;
       stopScanStages();
       if (scansRemaining > 0) {
         scansRemaining--;
         updateProgressBar();
-        if (currentUser) saveQuota();
+        if (userAtScanStart) saveQuota(userAtScanStart.id);
         else saveAnonQuota();
         const seq = ['RESULT_HUMAN', 'RESULT_AI', 'RESULT_SUSPICIOUS'];
         setState(seq[(3 - scansRemaining) % seq.length]);
@@ -1849,12 +1852,12 @@
       updateProgressBar();
     }
 
-    async function saveQuota() {
+    async function saveQuota(userId) {
       const { data: { session } } = await sb.auth.getSession();
       console.log('saveQuota token:', session?.access_token ? 'present' : 'MISSING');
       if (!session?.access_token) return;
       const res = await fetch(
-        `https://tjzjwyjggmrcmwawrtpm.supabase.co/rest/v1/scan_quota?user_id=eq.${currentUser.id}`,
+        `https://tjzjwyjggmrcmwawrtpm.supabase.co/rest/v1/scan_quota?user_id=eq.${userId}`,
         {
           method: 'PATCH',
           headers: {
