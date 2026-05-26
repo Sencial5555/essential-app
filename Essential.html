@@ -1141,6 +1141,7 @@
 
     // ── File handling ──────────────────────
     function handleZoneClick() {
+      if (scansRemaining <= 0) { openLoginModal('register'); return; }
       if (currentState === 'IDLE') fileInput.click();
     }
 
@@ -1151,7 +1152,7 @@
 
     function handleDragOver(e) {
       e.preventDefault();
-      if (currentState === 'IDLE') uploadZone.classList.add('drag-over');
+      if (currentState === 'IDLE' && scansRemaining > 0) uploadZone.classList.add('drag-over');
     }
 
     function handleDragLeave() {
@@ -1161,6 +1162,7 @@
     function handleDrop(e) {
       e.preventDefault();
       uploadZone.classList.remove('drag-over');
+      if (scansRemaining <= 0) { openLoginModal('register'); return; }
       const file = e.dataTransfer.files[0];
       if (file && file.type.startsWith('image/')) loadFile(file);
     }
@@ -1647,6 +1649,7 @@
       } catch { btn.disabled = true; }
     }
     function submitUrl() {
+      if (scansRemaining <= 0) { openLoginModal('register'); return; }
       const input = document.getElementById('url-input');
       const btn   = document.getElementById('url-submit');
       if (btn.disabled) return;
