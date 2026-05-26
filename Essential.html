@@ -1111,6 +1111,7 @@
   <script>
     // ── State ──────────────────────────────
     let currentState = 'IDLE';
+    let currentUser = null;
     let scansRemaining = loadAnonQuota();
     let selectedFile = null;
     let scanTimer = null;
@@ -1741,8 +1742,6 @@
       'https://tjzjwyjggmrcmwawrtpm.supabase.co',
       'sb_publishable_E0cyz5LQVlBvKsg9lzDkrg_XtTVdfEH'
     );
-
-    let currentUser = null;
 
     async function signInWithGoogle() {
       await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.href } });
