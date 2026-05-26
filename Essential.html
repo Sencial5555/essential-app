@@ -1826,9 +1826,11 @@
 
     async function loadQuota(userId) {
       const newReset = () => new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
-      let { data } = await sb.from('scan_quota').select('scans_remaining, reset_at').eq('user_id', userId).single();
+      let { data, error } = await sb.from('scan_quota').select('scans_remaining, reset_at').eq('user_id', userId).single();
+      if (error) console.error('loadQuota select:', error.message);
       if (!data) {
-        await sb.from('scan_quota').insert({ user_id: userId, scans_remaining: 5, reset_at: newReset() });
+        const { error: insertErr } = await sb.from('scan_quota').insert({ user_id: userId, scans_remaining: 5, reset_at: newReset() });
+        if (insertErr) console.error('loadQuota insert:', insertErr.message);
         ({ data } = await sb.from('scan_quota').select('scans_remaining, reset_at').eq('user_id', userId).single());
       }
       if (!data) return;
@@ -1895,8 +1897,7 @@
         updateAuthUI(session.user);
         if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
           quotaLoaded = false;
-          await loadQuota(session.user.id);
-          quotaLoaded = true;
+          try { await loadQuota(session.user.id); } finally { quotaLoaded = true; }
         }
       } else {
         updateAuthUI(null);
