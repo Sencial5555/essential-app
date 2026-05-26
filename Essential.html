@@ -1822,12 +1822,13 @@
 
     async function loadQuota(userId) {
       const newReset = () => new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
-      let { data, error } = await sb.from('scan_quota').select('scans_remaining, reset_at').eq('user_id', userId).single();
+      let { data, error } = await sb.from('scan_quota').select('scans_remaining, reset_at').eq('user_id', userId).maybeSingle();
       if (error) console.error('loadQuota select:', error.message);
       if (!data) {
-        const { error: insertErr } = await sb.from('scan_quota').insert({ user_id: userId, scans_remaining: 5, reset_at: newReset() });
-        if (insertErr) console.error('loadQuota insert:', insertErr.message);
-        ({ data } = await sb.from('scan_quota').select('scans_remaining, reset_at').eq('user_id', userId).single());
+        const { error: upsertErr } = await sb.from('scan_quota')
+          .upsert({ user_id: userId, scans_remaining: 5, reset_at: newReset() }, { onConflict: 'user_id' });
+        if (upsertErr) console.error('loadQuota upsert:', upsertErr.message);
+        ({ data } = await sb.from('scan_quota').select('scans_remaining, reset_at').eq('user_id', userId).maybeSingle());
       }
       if (!data) return;
       if (!data.reset_at) {
