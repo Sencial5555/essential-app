@@ -1850,6 +1850,7 @@
           scansRemaining = d.scans_remaining;
         }
       }
+      localStorage.setItem(`ess_quota_${userId}`, scansRemaining);
       updateProgressBar();
     }
 
@@ -1874,6 +1875,7 @@
         );
         const rows = await res.json();
         console.log('saveQuota HTTP:', res.status, '| rows updated:', rows.length, '| sent userId:', userId.slice(0,8));
+        if (rows.length) localStorage.setItem(`ess_quota_${userId}`, scansRemaining);
       } catch (e) {
         console.error('saveQuota error:', e.message);
       }
@@ -1922,7 +1924,8 @@
       if (session) {
         updateAuthUI(session.user);
         if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
-          scansRemaining = 5;
+          const cached = parseInt(localStorage.getItem(`ess_quota_${session.user.id}`));
+          scansRemaining = isNaN(cached) ? 5 : cached;
           await loadQuota(session.user.id);
         }
       } else {
