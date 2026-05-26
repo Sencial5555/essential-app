@@ -14,7 +14,7 @@ export default async function handler(req) {
   }
 
   const sgForm = new FormData();
-  sgForm.append('models', 'type');
+  sgForm.append('models', 'genai');
   sgForm.append('api_user',   process.env.SIGHTENGINE_USER);
   sgForm.append('api_secret', process.env.SIGHTENGINE_SECRET);
 
@@ -28,7 +28,7 @@ export default async function handler(req) {
     return json({ error: sgData.error?.message || 'Sightengine error' }, 502);
   }
 
-  const aiScore = sgData.type?.ai_generated ?? 0;
+  const aiScore = sgData.ai_generated ?? 0;
 
   let type;
   if      (aiScore >= 0.70) type = 'ai';
@@ -39,7 +39,16 @@ export default async function handler(req) {
     ? Math.round((1 - aiScore) * 100)
     : Math.round(aiScore * 100);
 
-  return json({ type, score: displayScore, ai_generated: aiScore });
+  // Find top detected generator if AI
+  let generator = null;
+  if (type !== 'human' && sgData.genai) {
+    const generators = Object.entries(sgData.genai)
+      .filter(([k, v]) => k !== 'ai_generated' && typeof v === 'number' && v > 0.1)
+      .sort(([, a], [, b]) => b - a);
+    if (generators.length > 0) generator = generators[0][0];
+  }
+
+  return json({ type, score: displayScore, ai_generated: aiScore, generator });
 }
 
 function json(data, status = 200) {

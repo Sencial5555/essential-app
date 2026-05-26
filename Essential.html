@@ -1115,6 +1115,7 @@
     let selectedFile = null;
     let scanTimer = null;
     let pendingScanScore = null;
+    let pendingGenerator = null;
 
     // ── DOM refs ───────────────────────────
     const uploadZone       = document.getElementById('upload-zone');
@@ -1200,11 +1201,12 @@
 
         const res = await fetch('/api/scan', { method: 'POST', body: form });
         if (!res.ok) throw new Error('API error');
-        const { type, score } = await res.json();
+        const { type, score, generator } = await res.json();
 
         stopScanStages();
         if (scansRemaining > 0) {
           pendingScanScore = score;
+          pendingGenerator = generator || null;
           setState('RESULT_' + type.toUpperCase());
         } else {
           setState('LOGIN_GATE');
@@ -1517,7 +1519,13 @@
       panelScore.textContent = '0%';
       panelScore.style.color = p.color;
       countUp(panelScore, displayScore);
-      panelDesc.textContent = p.desc;
+      if (pendingGenerator && type !== 'human') {
+        const name = pendingGenerator.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+        panelDesc.textContent = `${name} signatures detected.`;
+      } else {
+        panelDesc.textContent = p.desc;
+      }
+      pendingGenerator = null;
       panelCard.style.borderColor = p.border;
 
       // Signals breakdown
