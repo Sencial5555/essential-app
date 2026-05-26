@@ -1923,7 +1923,6 @@
         updateAuthUI(session.user);
         if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
           scansRemaining = 5;
-          updateProgressBar();
           await loadQuota(session.user.id);
         }
       } else {
