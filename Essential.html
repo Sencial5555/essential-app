@@ -1224,7 +1224,6 @@
           pendingScanScore = score;
           pendingGenerator = generator || null;
           setState('RESULT_' + type.toUpperCase());
-          console.log('scan done, user:', userAtScanStart?.id?.slice(0,8) ?? 'null');
           if (userAtScanStart) saveQuota(userAtScanStart.id);
           else saveAnonQuota();
         } else {
@@ -1858,7 +1857,6 @@
       try {
         const raw = localStorage.getItem('sb-tjzjwyjggmrcmwawrtpm-auth-token');
         const token = raw ? JSON.parse(raw)?.access_token : null;
-        console.log('saveQuota token:', token ? 'present' : 'MISSING');
         if (!token) return;
         const res = await fetch(
           `https://tjzjwyjggmrcmwawrtpm.supabase.co/rest/v1/scan_quota?user_id=eq.${userId}`,
@@ -1874,7 +1872,6 @@
           }
         );
         const rows = await res.json();
-        console.log('saveQuota HTTP:', res.status, '| rows updated:', rows.length, '| sent userId:', userId.slice(0,8));
         if (rows.length) localStorage.setItem(`ess_quota_${userId}`, scansRemaining);
       } catch (e) {
         console.error('saveQuota error:', e.message);
