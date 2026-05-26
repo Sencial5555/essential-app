@@ -1866,12 +1866,13 @@
               'Content-Type': 'application/json',
               'apikey': 'sb_publishable_E0cyz5LQVlBvKsg9lzDkrg_XtTVdfEH',
               'Authorization': `Bearer ${token}`,
-              'Prefer': 'return=minimal'
+              'Prefer': 'return=representation'
             },
             body: JSON.stringify({ scans_remaining: scansRemaining })
           }
         );
-        console.log('saveQuota HTTP:', res.status);
+        const rows = await res.json();
+        console.log('saveQuota HTTP:', res.status, '| rows updated:', rows.length, '| sent userId:', userId.slice(0,8));
       } catch (e) {
         console.error('saveQuota error:', e.message);
       }
