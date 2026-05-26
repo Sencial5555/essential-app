@@ -1920,6 +1920,21 @@
       }
     }
 
+    // Synchronously pre-seed from cached token so first paint shows correct auth state
+    (function preloadSession() {
+      try {
+        const raw = localStorage.getItem('sb-tjzjwyjggmrcmwawrtpm-auth-token');
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        if (!parsed?.user || !parsed.expires_at || parsed.expires_at <= Date.now() / 1000) return;
+        const cachedQ = parseInt(localStorage.getItem(`ess_quota_${parsed.user.id}`));
+        currentUser = parsed.user;
+        scansRemaining = isNaN(cachedQ) ? 5 : cachedQ;
+        updateAuthUI(parsed.user);
+        updateProgressBar();
+      } catch {}
+    })();
+
     sb.auth.onAuthStateChange(async (event, session) => {
       if (session) {
         updateAuthUI(session.user);
@@ -1929,6 +1944,12 @@
           await loadQuota(session.user.id);
         }
       } else {
+        // Ignore transient null events if a valid token still exists in localStorage
+        try {
+          const raw = localStorage.getItem('sb-tjzjwyjggmrcmwawrtpm-auth-token');
+          const parsed = raw ? JSON.parse(raw) : null;
+          if (parsed?.expires_at > Date.now() / 1000) return;
+        } catch {}
         updateAuthUI(null);
         scansRemaining = loadAnonQuota();
         updateProgressBar();
