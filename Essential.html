@@ -1218,11 +1218,15 @@
 
         stopScanStages();
         if (scansRemaining > 0) {
+          scansRemaining--;
+          updateProgressBar();
+          if (currentUser) await saveQuota();
+          else saveAnonQuota();
           pendingScanScore = score;
           pendingGenerator = generator || null;
           setState('RESULT_' + type.toUpperCase());
         } else {
-          setState('LOGIN_GATE');
+          currentUser ? setState('PAYWALL') : setState('LOGIN_GATE');
         }
       } catch {
         // Fallback to demo if API unavailable
@@ -1233,10 +1237,14 @@
     function useDemoResult() {
       stopScanStages();
       if (scansRemaining > 0) {
+        scansRemaining--;
+        updateProgressBar();
+        if (currentUser) saveQuota();
+        else saveAnonQuota();
         const seq = ['RESULT_HUMAN', 'RESULT_AI', 'RESULT_SUSPICIOUS'];
         setState(seq[(3 - scansRemaining) % seq.length]);
       } else {
-        setState('LOGIN_GATE');
+        currentUser ? setState('PAYWALL') : setState('LOGIN_GATE');
       }
     }
 
@@ -1351,11 +1359,6 @@
       show(removeBtn);
       uploadZone.onclick = null;
 
-      // Deplete bar
-      if (scansRemaining > 0) scansRemaining--;
-      updateProgressBar();
-      if (currentUser) saveQuota(currentUser.id);
-      else saveAnonQuota();
       show(resultCard);
       // Trigger entrance animation
       resultCard.classList.remove('result-enter');
@@ -1846,11 +1849,9 @@
       updateProgressBar();
     }
 
-    async function saveQuota(userId) {
-      console.log('saveQuota saving:', scansRemaining, 'for user:', userId);
-      const { error, data } = await sb.from('scan_quota').update({ scans_remaining: scansRemaining }).eq('user_id', userId).select();
+    async function saveQuota() {
+      const { error } = await sb.rpc('update_user_scan_quota', { p_scans_remaining: scansRemaining });
       if (error) console.error('saveQuota failed:', error.message);
-      else console.log('saveQuota success, rows updated:', data?.length);
     }
 
     function loadAnonQuota() {
