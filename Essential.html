@@ -1123,7 +1123,6 @@
     let currentState = 'IDLE';
     let currentUser = null;
     let scansRemaining = loadAnonQuota();
-    let quotaLoaded = true;
     let selectedFile = null;
     let scanTimer = null;
     let pendingScanScore = null;
@@ -1153,7 +1152,6 @@
 
     // ── File handling ──────────────────────
     function handleZoneClick() {
-      if (!quotaLoaded) return;
       if (scansRemaining <= 0) { currentUser ? openPaywall() : openLoginModal('register'); return; }
       if (currentState === 'IDLE') fileInput.click();
     }
@@ -1175,7 +1173,6 @@
     function handleDrop(e) {
       e.preventDefault();
       uploadZone.classList.remove('drag-over');
-      if (!quotaLoaded) return;
       if (scansRemaining <= 0) { currentUser ? openPaywall() : openLoginModal('register'); return; }
       const file = e.dataTransfer.files[0];
       if (file && file.type.startsWith('image/')) loadFile(file);
@@ -1663,7 +1660,6 @@
       } catch { btn.disabled = true; }
     }
     function submitUrl() {
-      if (!quotaLoaded) return;
       if (scansRemaining <= 0) { currentUser ? openPaywall() : openLoginModal('register'); return; }
       const input = document.getElementById('url-input');
       const btn   = document.getElementById('url-submit');
@@ -1896,13 +1892,13 @@
       if (session) {
         updateAuthUI(session.user);
         if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
-          quotaLoaded = false;
-          try { await loadQuota(session.user.id); } finally { quotaLoaded = true; }
+          scansRemaining = 5;
+          updateProgressBar();
+          await loadQuota(session.user.id);
         }
       } else {
         updateAuthUI(null);
         scansRemaining = loadAnonQuota();
-        quotaLoaded = true;
         updateProgressBar();
       }
     });
