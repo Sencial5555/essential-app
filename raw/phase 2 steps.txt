@@ -1,0 +1,38 @@
+ 1. Supabase (start here)
+  - Create a free Supabase project
+  - Enable Google + Apple OAuth providers      
+  - Create a users table with scans_remaining
+  (int) and reset_at (timestamp)
+  - Replace the demo auth buttons with real
+  - Enable Google + Apple OAuth providers      
+  - Create a users table with scans_remaining  
+  (int) and reset_at (timestamp)
+  - Replace the demo auth buttons with real    
+  Supabase auth calls
+
+  2. Sightengine (the core feature)
+  - Sign up for a Sightengine API key
+  - Create a Vercel Edge Function (/api/scan)  
+  that receives the image, calls Sightengine,  
+  and returns the result
+  - The scan must go server-side — you can't   
+  call Sightengine directly from the browser   
+  without exposing your API key
+  - Replace setState('SCANNING') fake timer    
+  with a real fetch to /api/scan
+
+  3. Stripe (payments)
+  - Create Stripe products: one-time $4.99 (100
+   credits) + $9.99/mo subscription
+  - Add a Vercel Edge Function (/api/checkout) 
+  that creates a Stripe checkout session       
+  - Wire the Buy / Subscribe buttons in the    
+  paywall overlay to redirect there
+
+  4. Vercel deployment
+  - The project already has index.html as the  
+  entry point so it's drop-in deployable       
+  - Add a vercel.json for the Edge Functions   
+  routing
+  - Store all API keys as Vercel environment   
+  variables (never in the HTML)

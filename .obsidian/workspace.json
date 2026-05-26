@@ -11,10 +11,14 @@
             "id": "1e7d6367d0cb575c",
             "type": "leaf",
             "state": {
-              "type": "graph",
-              "state": {},
-              "icon": "lucide-git-fork",
-              "title": "Graph view"
+              "type": "markdown",
+              "state": {
+                "file": "wiki/sources/2026-05-25 — Basic Phrases — Tech Stack Explained.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "2026-05-25 — Basic Phrases — Tech Stack Explained"
             }
           }
         ]
@@ -49,7 +53,7 @@
             "state": {
               "type": "search",
               "state": {
-                "query": "",
+                "query": "basi",
                 "matchingCase": false,
                 "explainSearch": false,
                 "collapseAll": false,
@@ -70,7 +74,8 @@
               "title": "Bookmarks"
             }
           }
-        ]
+        ],
+        "currentTab": 1
       }
     ],
     "direction": "horizontal",
@@ -192,21 +197,27 @@
   },
   "active": "1e7d6367d0cb575c",
   "lastOpenFiles": [
-    "index.html.tmp.15796.9489c87be7a2",
-    "index.html.tmp.15796.65a31466ad68",
-    "index.html.tmp.15796.5374eeeaaa36",
-    "index.html.tmp.15796.581ff4e22ea8",
-    "index.html.tmp.15796.9433b0dc6859",
-    "index.html.tmp.15796.9909fa790c86",
-    "index.html",
-    "index.html.tmp.15796.e71ad188e3dd",
+    "Essential.html.tmp.7992.cb4ef5d12b8d",
+    "Essential.html.tmp.7992.7fba322cb3f9",
+    "Essential.html.tmp.7992.486b7a0fd11b",
+    "Essential.html.tmp.7992.77141cbbd2f2",
+    "Essential.html.tmp.7992.8997a5d3b490",
+    "Essential.html.tmp.7992.ec4488bd3733",
+    "Essential.html.tmp.7992.791ea0046f58",
+    "Essential.html.tmp.7992.7821987d1f40",
+    "Essential.html.tmp.7992.c7c06b31c856",
+    "Essential.html.tmp.7992.71c69c615ff9",
+    "Essential.html.tmp.7992.2203ab557fb7",
+    "logo.png",
+    "CURSOR_MOBILE_PANEL_PROMPT.md",
+    "CURSOR_DESKTOP_LAYOUT_PROMPT.md",
+    "wiki/entities/Stripe.md",
+    "wiki/entities/Cursor.md",
+    "wiki/concepts/Build Phases.md",
     "wiki/entities/Essential.md",
     "wiki/index.md",
     "wiki/concepts/API Cost Trap.md",
     "wiki/concepts/AI Image Detection.md",
-    "wiki/log.md.tmp.18072.4dc4e09753c2",
-    "wiki/index.md.tmp.18072.b605c5c52260",
-    "wiki/overview.md.tmp.18072.e5d90af8ca72",
     "wiki/concepts/Fresh Chat Rule.md",
     "wiki/concepts/Deployment Workflow.md",
     "wiki/concepts/Build in Public.md",
@@ -222,12 +233,7 @@
     "wiki/concepts/Brand Identity.md",
     "wiki/concepts/Marketing Strategy.md",
     "wiki/concepts/MVP.md",
-    "wiki/concepts/Build Phases.md",
     "wiki/entities/Google Cloud AI.md",
-    "wiki/entities/AWS Rekognition.md",
-    "wiki/entities/Render.md",
-    "wiki/entities/Claude Code.md",
-    "wiki/entities/Supabase.md",
     "Untitled 3.canvas",
     "Untitled 2.canvas",
     "Untitled 1.canvas",
