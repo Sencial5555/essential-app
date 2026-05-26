@@ -1853,23 +1853,28 @@
     }
 
     async function saveQuota(userId) {
-      const { data: { session } } = await sb.auth.getSession();
-      console.log('saveQuota token:', session?.access_token ? 'present' : 'MISSING');
-      if (!session?.access_token) return;
-      const res = await fetch(
-        `https://tjzjwyjggmrcmwawrtpm.supabase.co/rest/v1/scan_quota?user_id=eq.${userId}`,
-        {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-            'apikey': 'sb_publishable_E0cyz5LQVlBvKsg9lzDkrg_XtTVdfEH',
-            'Authorization': `Bearer ${session.access_token}`,
-            'Prefer': 'return=minimal'
-          },
-          body: JSON.stringify({ scans_remaining: scansRemaining })
-        }
-      );
-      console.log('saveQuota HTTP:', res.status);
+      try {
+        const raw = localStorage.getItem('sb-tjzjwyjggmrcmwawrtpm-auth-token');
+        const token = raw ? JSON.parse(raw)?.access_token : null;
+        console.log('saveQuota token:', token ? 'present' : 'MISSING');
+        if (!token) return;
+        const res = await fetch(
+          `https://tjzjwyjggmrcmwawrtpm.supabase.co/rest/v1/scan_quota?user_id=eq.${userId}`,
+          {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+              'apikey': 'sb_publishable_E0cyz5LQVlBvKsg9lzDkrg_XtTVdfEH',
+              'Authorization': `Bearer ${token}`,
+              'Prefer': 'return=minimal'
+            },
+            body: JSON.stringify({ scans_remaining: scansRemaining })
+          }
+        );
+        console.log('saveQuota HTTP:', res.status);
+      } catch (e) {
+        console.error('saveQuota error:', e.message);
+      }
     }
 
     function loadAnonQuota() {
