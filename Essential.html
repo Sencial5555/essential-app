@@ -1691,6 +1691,7 @@
       try { localStorage.setItem(HISTORY_KEY, JSON.stringify(arr.slice(0, 50))); } catch {}
     }
     function pushHistory(type) {
+      if (!currentUser) { renderHistory(); return; }
       const p = panelResultConfigs[type];
       const srcThumb = document.getElementById('thumb');
       const name = (selectedFile && selectedFile.name) || 'image';
@@ -1710,6 +1711,11 @@
     function renderHistory() {
       const list  = document.getElementById('panel-recent-list');
       const clear = document.getElementById('panel-clear-btn');
+      if (!currentUser) {
+        list.innerHTML = '<p style="font-size:12px; color:var(--text-muted); padding:10px 0 2px; line-height:1.5;">Sign in to save your scan history.</p>';
+        hide(clear);
+        return;
+      }
       const arr = loadHistory();
       if (!arr.length) {
         list.innerHTML = '<p id="panel-recent-empty" style="font-size:12px; color:var(--text-muted); padding:10px 0 2px; line-height:1.5;">Your scan history will appear here. Nothing leaves this browser.</p>';
@@ -1745,6 +1751,8 @@
       await sb.auth.signInWithOAuth({ provider: 'apple', options: { redirectTo: window.location.href } });
     }
     async function signOut() {
+      clearHistory();
+      saveHistory([]);
       updateAuthUI(null);
       scansRemaining = loadAnonQuota();
       updateProgressBar();
@@ -1842,10 +1850,12 @@
         emailEl.textContent = user.email || user.user_metadata?.full_name || '';
         overlayLogin.classList.add('hidden');
         resultCard.classList.remove('blurred');
+        renderHistory();
       } else {
         form.classList.remove('hidden');
         userEl.classList.add('hidden');
         userEl.style.display = 'none';
+        renderHistory();
       }
     }
 
