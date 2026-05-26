@@ -1850,7 +1850,7 @@
     }
 
     async function saveQuota() {
-      const { error } = await sb.rpc('update_user_scan_quota', { p_scans_remaining: scansRemaining });
+      const { error } = await sb.rpc('save_quota', { p_remaining: scansRemaining });
       if (error) console.error('saveQuota failed:', error.message);
     }
 
