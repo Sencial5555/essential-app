@@ -1750,7 +1750,7 @@
       await sb.auth.signInWithOAuth({ provider: 'apple', options: { redirectTo: window.location.href } });
     }
     async function signOut() {
-      await sb.auth.signOut({ scope: 'global' });
+      try { await sb.auth.signOut({ scope: 'global' }); } catch {}
       window.location.reload();
     }
 
