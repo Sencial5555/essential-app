@@ -1152,7 +1152,7 @@
 
     // ── File handling ──────────────────────
     function handleZoneClick() {
-      if (scansRemaining <= 0) { openLoginModal('register'); return; }
+      if (scansRemaining <= 0) { currentUser ? openPaywall() : openLoginModal('register'); return; }
       if (currentState === 'IDLE') fileInput.click();
     }
 
@@ -1173,7 +1173,7 @@
     function handleDrop(e) {
       e.preventDefault();
       uploadZone.classList.remove('drag-over');
-      if (scansRemaining <= 0) { openLoginModal('register'); return; }
+      if (scansRemaining <= 0) { currentUser ? openPaywall() : openLoginModal('register'); return; }
       const file = e.dataTransfer.files[0];
       if (file && file.type.startsWith('image/')) loadFile(file);
     }
@@ -1289,7 +1289,7 @@
           break;
 
         case 'SCANNING':
-          if (scansRemaining <= 0) { setState('LOGIN_GATE'); break; }
+          if (scansRemaining <= 0) { currentUser ? setState('PAYWALL') : setState('LOGIN_GATE'); break; }
           show(thumb);
           hide(zoneEmptyContent);
           show(removeBtn);
@@ -1660,7 +1660,7 @@
       } catch { btn.disabled = true; }
     }
     function submitUrl() {
-      if (scansRemaining <= 0) { openLoginModal('register'); return; }
+      if (scansRemaining <= 0) { currentUser ? openPaywall() : openLoginModal('register'); return; }
       const input = document.getElementById('url-input');
       const btn   = document.getElementById('url-submit');
       if (btn.disabled) return;
