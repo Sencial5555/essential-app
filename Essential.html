@@ -1220,11 +1220,11 @@
         if (scansRemaining > 0) {
           scansRemaining--;
           updateProgressBar();
-          if (currentUser) await saveQuota();
-          else saveAnonQuota();
           pendingScanScore = score;
           pendingGenerator = generator || null;
           setState('RESULT_' + type.toUpperCase());
+          if (currentUser) saveQuota();
+          else saveAnonQuota();
         } else {
           currentUser ? setState('PAYWALL') : setState('LOGIN_GATE');
         }
@@ -1850,8 +1850,8 @@
     }
 
     async function saveQuota() {
-      const { error } = await sb.rpc('save_quota', { p_remaining: scansRemaining });
-      if (error) console.error('saveQuota failed:', error.message);
+      const { data, error } = await sb.rpc('save_quota', { p_remaining: scansRemaining });
+      console.log('saveQuota uid in DB fn:', data, '| error:', error?.message ?? 'none');
     }
 
     function loadAnonQuota() {
