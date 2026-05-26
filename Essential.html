@@ -1821,16 +1821,20 @@
     }
 
     async function loadQuota(userId) {
+      const newReset = () => new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
       let { data } = await sb.from('scan_quota').select('scans_remaining, reset_at').eq('user_id', userId).single();
       if (!data) {
-        // Row missing — create it (trigger may have failed on first sign-up)
-        await sb.from('scan_quota').insert({ user_id: userId, scans_remaining: 5 });
+        await sb.from('scan_quota').insert({ user_id: userId, scans_remaining: 5, reset_at: newReset() });
         ({ data } = await sb.from('scan_quota').select('scans_remaining, reset_at').eq('user_id', userId).single());
       }
       if (!data) return;
-      if (new Date(data.reset_at) < new Date()) {
-        const newReset = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
-        await sb.from('scan_quota').update({ scans_remaining: 5, reset_at: newReset }).eq('user_id', userId);
+      if (!data.reset_at) {
+        // reset_at missing — set it without touching scans_remaining
+        await sb.from('scan_quota').update({ reset_at: newReset() }).eq('user_id', userId);
+        scansRemaining = data.scans_remaining;
+      } else if (new Date(data.reset_at) < new Date()) {
+        // Weekly reset expired
+        await sb.from('scan_quota').update({ scans_remaining: 5, reset_at: newReset() }).eq('user_id', userId);
         scansRemaining = 5;
       } else {
         scansRemaining = data.scans_remaining;
@@ -1884,7 +1888,9 @@
     sb.auth.onAuthStateChange(async (event, session) => {
       if (session) {
         updateAuthUI(session.user);
-        await loadQuota(session.user.id);
+        if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+          await loadQuota(session.user.id);
+        }
       } else {
         updateAuthUI(null);
         scansRemaining = loadAnonQuota();
