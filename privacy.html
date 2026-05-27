@@ -182,7 +182,8 @@
 
     <h2>Images you scan</h2>
     <p>When you scan an image, it is sent to <a href="https://sightengine.com" target="_blank">Sightengine</a> - a third-party AI analysis service - to determine whether it was AI-generated. The image is transmitted over an encrypted connection.</p>
-    <p>We do not store your images on our servers. Sightengine's own privacy policy governs how they handle images on their end. Based on their documentation, images are not retained after analysis.</p>
+    <p>When Sightengine is highly confident an image is human-made, the image is also sent to <a href="https://anthropic.com" target="_blank">Anthropic</a> (Claude) as a second opinion to catch potential false negatives. The two scores are averaged to produce the final result.</p>
+    <p>We do not store your images on our servers. Each service's own privacy policy governs how they handle images on their end. Based on their documentation, images are not retained after analysis.</p>
 
     <h2>Cookies</h2>
     <p>We do not use cookies. We use browser local storage strictly for functional purposes: keeping you signed in, remembering your scan count, and storing your scan history locally on your device. This data never leaves your browser unless you are signed in, in which case your scan quota is synced to our database.</p>
@@ -190,7 +191,8 @@
     <h2>Third-party services</h2>
     <ul>
       <li><strong>Supabase</strong> - authentication and scan quota database. Data is stored on servers in the EU. <a href="https://supabase.com/privacy" target="_blank">Privacy policy</a></li>
-      <li><strong>Sightengine</strong> - AI image analysis. Images are sent here for scanning. <a href="https://sightengine.com/privacy" target="_blank">Privacy policy</a></li>
+      <li><strong>Sightengine</strong> - primary AI image analysis. Images are sent here for every scan. <a href="https://sightengine.com/privacy" target="_blank">Privacy policy</a></li>
+      <li><strong>Anthropic (Claude)</strong> - secondary AI image analysis. Images are sent here when Sightengine is highly confident the image is human-made. <a href="https://anthropic.com/privacy" target="_blank">Privacy policy</a></li>
       <li><strong>Stripe</strong> - payment processing. Card data is handled entirely by Stripe. <a href="https://stripe.com/privacy" target="_blank">Privacy policy</a></li>
       <li><strong>Vercel</strong> - website hosting. Standard server logs (IP address, request metadata) are retained briefly for security purposes. <a href="https://vercel.com/legal/privacy-policy" target="_blank">Privacy policy</a></li>
     </ul>
