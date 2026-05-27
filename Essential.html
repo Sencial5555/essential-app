@@ -1443,7 +1443,7 @@
     };
 
     // aiPct = AI likelihood 0-100 derived from the actual scan score
-    const signalLabels = ['Pixel noise', 'Compression artifacts', 'Frequency patterns', 'Metadata consistency'];
+    const signalLabels = ['Pixel noise', 'Compression artifacts', 'Frequency patterns', 'Metadata anomalies'];
     const signalOffsets = [3, -4, 2, -5];
     function signalsHtml(aiPct, color) {
       return signalLabels.map((name, i) => {
