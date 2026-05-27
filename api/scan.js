@@ -40,15 +40,12 @@ export default async function handler(req) {
 
   // Call Claude when Sightengine is 90%+ confident it's human, to catch false negatives
   let finalScore = sgScore;
-  let _debug = { sgScore, claudeCalled: false, claudeScore: null, claudeError: null, hasKey: !!process.env.ANTHROPIC_API_KEY };
   if (sgScore <= 0.10) {
-    _debug.claudeCalled = true;
     try {
       const claudeScore = await getClaudeAIScore(mediaBuffer, mediaType, imgUrl);
-      _debug.claudeScore = claudeScore;
       finalScore = (sgScore + claudeScore) / 2;
-    } catch (e) {
-      _debug.claudeError = e.message;
+    } catch (_) {
+      // Fall back to Sightengine only if Claude fails
     }
   }
 
@@ -69,7 +66,7 @@ export default async function handler(req) {
     if (generators.length > 0) generator = generators[0][0];
   }
 
-  return json({ type, score: displayScore, ai_generated: finalScore, generator, _debug });
+  return json({ type, score: displayScore, ai_generated: finalScore, generator });
 }
 
 async function getClaudeAIScore(mediaBuffer, mediaType, imgUrl) {
