@@ -260,44 +260,6 @@
     .btn-active:active { transform: scale(0.97); }
 
     /* ── URL paste row ── */
-    #url-row {
-      display: flex;
-      gap: 8px;
-      margin-top: 14px;
-      align-items: center;
-      max-width: 460px;
-    }
-    #url-input {
-      flex: 1;
-      height: 40px;
-      padding: 0 14px;
-      border-radius: 10px;
-      background: var(--bg-surface);
-      border: 1px solid var(--border-subtle);
-      color: var(--text-primary);
-      font-size: 13px;
-      font-family: inherit;
-      outline: none;
-      transition: border-color 220ms ease, background 220ms ease;
-      min-width: 0;
-    }
-    #url-input::placeholder { color: var(--text-muted); }
-    #url-input:focus { border-color: var(--border-active); background: var(--bg-elevated); }
-    #url-submit {
-      height: 40px;
-      padding: 0 14px;
-      border-radius: 10px;
-      background: var(--bg-elevated);
-      color: var(--text-primary);
-      border: 1px solid var(--border-subtle);
-      font-size: 13px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: background 200ms ease, border-color 200ms ease;
-      white-space: nowrap;
-    }
-    #url-submit:hover { background: var(--bg-surface); border-color: var(--border-active); }
-    #url-submit:disabled { opacity: 0.45; cursor: not-allowed; }
 
     /* ── Confidence signals ── */
     .signal-row { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 12px; padding: 8px 0; }
@@ -670,9 +632,7 @@
       }
       #scan-btn-wrapper { max-width: 520px; }
       #scan-btn { height: 50px; font-size: 16px; }
-      #url-row { max-width: 520px; width: 100%; margin-top: 14px; flex-shrink: 0; }
-      #url-input, #url-submit { height: 44px; font-size: 14px; }
-      #progress-bar-wrapper { max-width: 520px; width: 100%; margin-top: 20px !important; flex-shrink: 0; }
+#progress-bar-wrapper { max-width: 520px; width: 100%; margin-top: 20px !important; flex-shrink: 0; }
       #progress-bar-wrapper > div:first-child > div { height: 6px !important; }
       #progress-label { font-size: 14px !important; }
       #result-card { display: none !important; }
@@ -861,12 +821,6 @@
       <!-- Scan button (IMAGE_LOADED state) — below upload zone, full-width -->
       <div id="scan-btn-wrapper" class="hidden">
         <button id="scan-btn" onclick="setState('SCANNING')" class="btn-active">Analyze image</button>
-      </div>
-
-      <!-- URL PASTE ROW -->
-      <div id="url-row" class="fade-up fade-up-2">
-        <input id="url-input" type="url" placeholder="or paste an image URL…" onkeydown="if(event.key==='Enter')submitUrl()" oninput="validateUrl()" />
-        <button id="url-submit" onclick="submitUrl()" disabled>Fetch</button>
       </div>
 
       <!-- PROGRESS BAR -->
@@ -1669,29 +1623,6 @@
     function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]); }
 
     // ── URL paste ──
-    function validateUrl() {
-      const input = document.getElementById('url-input');
-      const btn   = document.getElementById('url-submit');
-      try {
-        const u = new URL(input.value);
-        btn.disabled = !(u.protocol === 'http:' || u.protocol === 'https:');
-      } catch { btn.disabled = true; }
-    }
-    function submitUrl() {
-      if (scansRemaining <= 0) { currentUser ? openPaywall() : openLoginModal('register'); return; }
-      const input = document.getElementById('url-input');
-      const btn   = document.getElementById('url-submit');
-      if (btn.disabled) return;
-      let name = 'remote-image';
-      try { name = new URL(input.value).pathname.split('/').pop() || 'remote-image'; } catch {}
-      selectedFile = { name };
-      thumb.style.cssText = '';
-      thumb.src = input.value;
-      input.value = '';
-      btn.disabled = true;
-      setState('IMAGE_LOADED');
-    }
-
     // ── Copy result ──
     function copyResult() {
       if (!lastResultType) return;
