@@ -1742,9 +1742,13 @@
       setTimeout(() => { document.getElementById('thumb-lightbox-img').src = ''; }, 200);
     }
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closeThumblightbox(); });
+    let _historyFullUrls = [];
     document.getElementById('panel-recent-list').addEventListener('click', e => {
       const img = e.target.closest('img.recent-thumb');
-      if (img && img.dataset.full) openThumblightbox(img.dataset.full);
+      if (!img) return;
+      const idx = parseInt(img.dataset.idx, 10);
+      const src = _historyFullUrls[idx];
+      if (src) openThumblightbox(src);
     });
     function renderHistory() {
       const list  = document.getElementById('panel-recent-list');
@@ -1760,10 +1764,11 @@
         hide(clear);
         return;
       }
+      _historyFullUrls = arr.map(e => e.full || e.thumb || '');
       show(clear);
-      list.innerHTML = arr.map(e => `
+      list.innerHTML = arr.map((e, i) => `
         <div class="recent-row">
-          ${e.thumb ? `<img class="recent-thumb" src="${e.thumb}" alt="" data-full="${e.full || e.thumb}" onerror="this.style.display='none'" />` : '<div class="recent-thumb"></div>'}
+          ${e.thumb ? `<img class="recent-thumb" src="${e.thumb}" alt="" data-idx="${i}" onerror="this.style.display='none'" />` : '<div class="recent-thumb"></div>'}
           <p style="flex:1; font-size:12px; color:var(--text-secondary); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0;">${escapeHtml(e.name)}</p>
           <span style="font-size:10px; font-weight:600; color:${e.color}; background:${e.bg}; border:1px solid ${e.border}; padding:2px 7px; border-radius:4px; flex-shrink:0;">${e.label}</span>
         </div>
