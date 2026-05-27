@@ -878,7 +878,7 @@
           <p id="progress-label" style="font-size:13px; color:var(--result-green); font-weight:500;">
             5 free scans remaining
           </p>
-          <p style="font-size:12px; color:var(--text-muted);">resets daily</p>
+          <p id="reset-countdown" style="font-size:12px; color:var(--text-muted); font-variant-numeric:tabular-nums;">--:--:--</p>
         </div>
       </div>
 
@@ -1122,6 +1122,8 @@
     // ── State ──────────────────────────────
     let currentState = 'IDLE';
     let currentUser = null;
+    let resetAt = null;
+    let countdownTimer = null;
     let scansRemaining = loadAnonQuota();
     let selectedFile = null;
     let scanTimer = null;
@@ -1765,9 +1767,50 @@
       `).join('');
     }
 
+    // ── London midnight reset ──────────────
+    function getNextLondonMidnight() {
+      const now = new Date();
+      const parts = new Intl.DateTimeFormat('en-GB', {
+        timeZone: 'Europe/London',
+        hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
+      }).formatToParts(now);
+      const h = parseInt(parts.find(p => p.type === 'hour').value) % 24;
+      const m = parseInt(parts.find(p => p.type === 'minute').value);
+      const s = parseInt(parts.find(p => p.type === 'second').value);
+      const msIntoDay = (h * 3600 + m * 60 + s) * 1000;
+      return new Date(now.getTime() + (86400000 - msIntoDay));
+    }
+
+    function startResetCountdown() {
+      clearInterval(countdownTimer);
+      const el = document.getElementById('reset-countdown');
+      if (!el || !resetAt) return;
+      function tick() {
+        const ms = resetAt - Date.now();
+        if (ms <= 0) {
+          clearInterval(countdownTimer);
+          if (currentUser) {
+            loadQuota(currentUser.id);
+          } else {
+            scansRemaining = 5;
+            resetAt = getNextLondonMidnight();
+            saveAnonQuota();
+            updateProgressBar();
+            startResetCountdown();
+          }
+          return;
+        }
+        const pad = n => String(n).padStart(2, '0');
+        el.textContent = `${pad(Math.floor(ms / 3600000))}:${pad(Math.floor(ms % 3600000 / 60000))}:${pad(Math.floor(ms % 60000 / 1000))}`;
+      }
+      tick();
+      countdownTimer = setInterval(tick, 1000);
+    }
+
     // ── Init ──
     renderHistory();
     setState('IDLE');
+    startResetCountdown();
 
     // ── Supabase ──────────────────────────
     const sb = supabase.createClient(
@@ -1837,7 +1880,7 @@
     }
 
     async function loadQuota(userId) {
-      const newReset = () => new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+      const newReset = () => { resetAt = getNextLondonMidnight(); return resetAt.toISOString(); };
       const raw = localStorage.getItem('sb-tjzjwyjggmrcmwawrtpm-auth-token');
       const token = raw ? JSON.parse(raw)?.access_token : null;
       if (!token) return;
@@ -1858,10 +1901,12 @@
           scansRemaining = 10;
         } else {
           scansRemaining = d.scans_remaining;
+          resetAt = new Date(d.reset_at);
         }
       }
       localStorage.setItem(`ess_quota_${userId}`, scansRemaining);
       updateProgressBar();
+      startResetCountdown();
     }
 
     async function saveQuota(userId) {
@@ -1892,18 +1937,22 @@
     function loadAnonQuota() {
       try {
         const raw = localStorage.getItem('ess_anon_quota');
-        if (!raw) return 5;
+        if (!raw) { resetAt = getNextLondonMidnight(); return 5; }
         const { n, reset } = JSON.parse(raw);
-        if (new Date(reset) < new Date()) { localStorage.removeItem('ess_anon_quota'); return 5; }
+        if (new Date(reset) < new Date()) {
+          localStorage.removeItem('ess_anon_quota');
+          resetAt = getNextLondonMidnight();
+          return 5;
+        }
+        resetAt = new Date(reset);
         return typeof n === 'number' ? n : 5;
-      } catch { return 5; }
+      } catch { resetAt = getNextLondonMidnight(); return 5; }
     }
 
     function saveAnonQuota() {
       try {
-        const existing = localStorage.getItem('ess_anon_quota');
-        const reset = existing ? JSON.parse(existing).reset : new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
-        localStorage.setItem('ess_anon_quota', JSON.stringify({ n: scansRemaining, reset }));
+        if (!resetAt) resetAt = getNextLondonMidnight();
+        localStorage.setItem('ess_anon_quota', JSON.stringify({ n: scansRemaining, reset: resetAt.toISOString() }));
       } catch {}
     }
 
