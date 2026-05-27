@@ -1633,9 +1633,9 @@
       const txt = `Essential scan: ${p.label} (${p.score}% confidence). ${p.desc}`;
       const after = () => {
         const lbl = document.getElementById('panel-copy-label');
-        if (lbl) { lbl.textContent = 'Copied'; setTimeout(()=>lbl.textContent='Copy', 1400); }
+        if (lbl) { lbl.textContent = 'Text copied'; setTimeout(()=>lbl.textContent='Copy', 1400); }
         document.querySelectorAll('.copy-label').forEach(el => {
-          el.textContent = 'Copied';
+          el.textContent = 'Text copied';
           setTimeout(()=>el.textContent='Copy result', 1400);
         });
       };
