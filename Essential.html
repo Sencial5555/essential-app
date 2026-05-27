@@ -1780,9 +1780,10 @@
       const now = new Date();
       const parts = new Intl.DateTimeFormat('en-GB', {
         timeZone: 'Europe/London',
-        hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
+        hour: '2-digit', minute: '2-digit', second: '2-digit',
+        hourCycle: 'h23'
       }).formatToParts(now);
-      const h = parseInt(parts.find(p => p.type === 'hour').value) % 24;
+      const h = parseInt(parts.find(p => p.type === 'hour').value);
       const m = parseInt(parts.find(p => p.type === 'minute').value);
       const s = parseInt(parts.find(p => p.type === 'second').value);
       const msIntoDay = (h * 3600 + m * 60 + s) * 1000;
@@ -1910,9 +1911,10 @@
         } else {
           scansRemaining = d.scans_remaining;
           const storedReset = new Date(d.reset_at);
-          // Migrate stale rolling reset (>24h) to next London midnight
-          if (storedReset - Date.now() > 86400000) {
-            resetAt = getNextLondonMidnight();
+          const correctMidnight = getNextLondonMidnight();
+          // Migrate stale rolling reset (>24h) or iOS-bug value (>1.5h past correct midnight)
+          if (storedReset - Date.now() > 86400000 || storedReset - correctMidnight > 5400000) {
+            resetAt = correctMidnight;
             await fetch(`${base}/scan_quota?user_id=eq.${userId}`, { method: 'PATCH', headers: { ...h, 'Prefer': 'return=minimal' }, body: JSON.stringify({ reset_at: resetAt.toISOString() }) });
           } else {
             resetAt = storedReset;
@@ -1960,8 +1962,10 @@
           resetAt = getNextLondonMidnight();
           return 5;
         }
-        // If stored reset is >24h away it's from the old rolling system — migrate to London midnight
-        resetAt = (storedReset - Date.now() > 86400000) ? getNextLondonMidnight() : storedReset;
+        // Migrate if >24h (old rolling system) or >1.5h past the correct midnight (iOS hour12 bug)
+        const correctMidnight = getNextLondonMidnight();
+        resetAt = (storedReset - Date.now() > 86400000 || storedReset - correctMidnight > 5400000)
+          ? correctMidnight : storedReset;
         return typeof n === 'number' ? n : 5;
       } catch { resetAt = getNextLondonMidnight(); return 5; }
     }
