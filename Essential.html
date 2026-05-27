@@ -876,9 +876,9 @@
         </div>
         <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px;">
           <p id="progress-label" style="font-size:13px; color:var(--result-green); font-weight:500;">
-            3 free scans remaining
+            5 free scans remaining
           </p>
-          <p style="font-size:12px; color:var(--text-muted);">resets weekly</p>
+          <p style="font-size:12px; color:var(--text-muted);">resets daily</p>
         </div>
       </div>
 
@@ -1010,7 +1010,7 @@
       </div>
       <!-- System status line -->
       <p style="margin-top:10px; font-size:10px; color:var(--text-muted); font-family:ui-monospace,'SF Mono','Fira Code',monospace; letter-spacing:0.04em; opacity:0.5;">
-        System Status: Nominal &nbsp;·&nbsp; Build v1.0.4 &nbsp;·&nbsp; SOC 2 Type II
+        System Status: Nominal &nbsp;·&nbsp; Build v1.0.4
       </p>
     </footer>
 
@@ -1030,7 +1030,7 @@
       </div>
       <h2 id="modal-auth-title" style="font-size:26px; font-weight:600; color:var(--text-primary); text-align:center; letter-spacing:-0.01em;">Your result is ready.</h2>
       <p id="modal-auth-subtitle" style="font-size:15px; color:var(--text-secondary); text-align:center; margin-top:10px; line-height:1.55;">
-        Create a free account to unlock 2 additional free weekly scans.
+        Create a free account to unlock 5 additional free daily scans.
       </p>
       <div style="margin-top:26px; display:flex; flex-direction:column; gap:12px;">
         <button class="auth-btn google-btn btn-active" onclick="signInWithGoogle()">
@@ -1369,7 +1369,7 @@
     }
 
     function updateProgressBar() {
-      const maxScans = currentUser ? 5 : 3;
+      const maxScans = currentUser ? 10 : 5;
       const pct = (scansRemaining / maxScans) * 100;
       progressFill.style.width = pct + '%';
       progressLabel.textContent = `${scansRemaining} free scan${scansRemaining !== 1 ? 's' : ''} remaining`;
@@ -1591,7 +1591,7 @@
     const modalContent = {
       register: {
         title: 'Your result is ready.',
-        subtitle: 'Create a free account to unlock 2 additional free weekly scans.'
+        subtitle: 'Create a free account to unlock 5 additional free daily scans.'
       },
       signin: {
         title: 'Welcome back.',
@@ -1826,7 +1826,7 @@
     }
 
     async function loadQuota(userId) {
-      const newReset = () => new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+      const newReset = () => new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
       const raw = localStorage.getItem('sb-tjzjwyjggmrcmwawrtpm-auth-token');
       const token = raw ? JSON.parse(raw)?.access_token : null;
       if (!token) return;
@@ -1838,13 +1838,13 @@
       };
       const rows = await (await fetch(`${base}/scan_quota?user_id=eq.${userId}&select=scans_remaining,reset_at`, { headers: h })).json();
       if (!rows.length) {
-        await fetch(`${base}/scan_quota`, { method: 'POST', headers: { ...h, 'Prefer': 'resolution=merge-duplicates,return=minimal' }, body: JSON.stringify({ user_id: userId, scans_remaining: 5, reset_at: newReset() }) });
-        scansRemaining = 5;
+        await fetch(`${base}/scan_quota`, { method: 'POST', headers: { ...h, 'Prefer': 'resolution=merge-duplicates,return=minimal' }, body: JSON.stringify({ user_id: userId, scans_remaining: 10, reset_at: newReset() }) });
+        scansRemaining = 10;
       } else {
         const d = rows[0];
         if (!d.reset_at || new Date(d.reset_at) < new Date()) {
-          await fetch(`${base}/scan_quota?user_id=eq.${userId}`, { method: 'PATCH', headers: { ...h, 'Prefer': 'return=minimal' }, body: JSON.stringify({ scans_remaining: 5, reset_at: newReset() }) });
-          scansRemaining = 5;
+          await fetch(`${base}/scan_quota?user_id=eq.${userId}`, { method: 'PATCH', headers: { ...h, 'Prefer': 'return=minimal' }, body: JSON.stringify({ scans_remaining: 10, reset_at: newReset() }) });
+          scansRemaining = 10;
         } else {
           scansRemaining = d.scans_remaining;
         }
@@ -1881,17 +1881,17 @@
     function loadAnonQuota() {
       try {
         const raw = localStorage.getItem('ess_anon_quota');
-        if (!raw) return 3;
+        if (!raw) return 5;
         const { n, reset } = JSON.parse(raw);
-        if (new Date(reset) < new Date()) { localStorage.removeItem('ess_anon_quota'); return 3; }
-        return typeof n === 'number' ? n : 3;
-      } catch { return 3; }
+        if (new Date(reset) < new Date()) { localStorage.removeItem('ess_anon_quota'); return 5; }
+        return typeof n === 'number' ? n : 5;
+      } catch { return 5; }
     }
 
     function saveAnonQuota() {
       try {
         const existing = localStorage.getItem('ess_anon_quota');
-        const reset = existing ? JSON.parse(existing).reset : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+        const reset = existing ? JSON.parse(existing).reset : new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
         localStorage.setItem('ess_anon_quota', JSON.stringify({ n: scansRemaining, reset }));
       } catch {}
     }
@@ -1926,7 +1926,7 @@
         if (!parsed?.user || !parsed.expires_at || parsed.expires_at <= Date.now() / 1000) return;
         const cachedQ = parseInt(localStorage.getItem(`ess_quota_${parsed.user.id}`));
         currentUser = parsed.user;
-        scansRemaining = isNaN(cachedQ) ? 5 : cachedQ;
+        scansRemaining = isNaN(cachedQ) ? 10 : cachedQ;
         updateAuthUI(parsed.user);
         updateProgressBar();
       } catch {}
@@ -1937,7 +1937,7 @@
         updateAuthUI(session.user);
         if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
           const cached = parseInt(localStorage.getItem(`ess_quota_${session.user.id}`));
-          scansRemaining = isNaN(cached) ? 5 : cached;
+          scansRemaining = isNaN(cached) ? 10 : cached;
           await loadQuota(session.user.id);
         }
       } else {
