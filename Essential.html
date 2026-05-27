@@ -1862,7 +1862,7 @@
     );
 
     async function signInWithGoogle() {
-      await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: 'https://essentialai-app.vercel.app/' } });
+      await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: 'https://www.essentialai-app.com/' } });
     }
     async function signInWithApple() {
       await sb.auth.signInWithOAuth({ provider: 'apple', options: { redirectTo: window.location.href } });
@@ -2086,6 +2086,16 @@
         showToast('Checkout cancelled — no charge was made.');
       }
     })();
+
+    // Restore session immediately on load before onAuthStateChange fires
+    sb.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        updateAuthUI(session.user);
+        const cached = parseInt(localStorage.getItem(`ess_quota_${session.user.id}`));
+        scansRemaining = isNaN(cached) ? 10 : cached;
+        loadQuota(session.user.id);
+      }
+    });
 
     sb.auth.onAuthStateChange(async (event, session) => {
       if (session) {
