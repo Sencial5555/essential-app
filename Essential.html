@@ -1901,7 +1901,14 @@
           scansRemaining = 10;
         } else {
           scansRemaining = d.scans_remaining;
-          resetAt = new Date(d.reset_at);
+          const storedReset = new Date(d.reset_at);
+          // Migrate stale rolling reset (>24h) to next London midnight
+          if (storedReset - Date.now() > 86400000) {
+            resetAt = getNextLondonMidnight();
+            await fetch(`${base}/scan_quota?user_id=eq.${userId}`, { method: 'PATCH', headers: { ...h, 'Prefer': 'return=minimal' }, body: JSON.stringify({ reset_at: resetAt.toISOString() }) });
+          } else {
+            resetAt = storedReset;
+          }
         }
       }
       localStorage.setItem(`ess_quota_${userId}`, scansRemaining);
