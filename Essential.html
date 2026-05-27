@@ -289,6 +289,24 @@
       flex-shrink: 0;
       object-fit: cover;
     }
+    img.recent-thumb[src] { cursor: zoom-in; }
+    #thumb-lightbox {
+      position: fixed; inset: 0; z-index: 9999;
+      background: rgba(0,0,0,0.82);
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; transition: opacity 0.18s ease;
+      pointer-events: none;
+    }
+    #thumb-lightbox.open { opacity: 1; pointer-events: all; }
+    #thumb-lightbox img {
+      max-width: min(90vw, 600px);
+      max-height: 80vh;
+      border-radius: 12px;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.6);
+      object-fit: contain;
+      transform: scale(0.92); transition: transform 0.18s ease;
+    }
+    #thumb-lightbox.open img { transform: scale(1); }
 
     /* ── Email auth inputs ── */
     .email-auth-input {
@@ -1019,6 +1037,11 @@
     </div>
   </div>
 
+  <!-- THUMBNAIL LIGHTBOX -->
+  <div id="thumb-lightbox" onclick="closeThumblightbox()">
+    <img id="thumb-lightbox-img" src="" alt="" />
+  </div>
+
   <!-- PAYWALL overlay -->
   <div id="overlay-paywall" class="overlay-backdrop hidden">
     <div class="overlay-card modal-enter" style="max-width:520px;">
@@ -1698,6 +1721,17 @@
       saveHistory([]);
       renderHistory();
     }
+    function openThumblightbox(src) {
+      const lb = document.getElementById('thumb-lightbox');
+      document.getElementById('thumb-lightbox-img').src = src;
+      lb.classList.add('open');
+    }
+    function closeThumblightbox() {
+      const lb = document.getElementById('thumb-lightbox');
+      lb.classList.remove('open');
+      setTimeout(() => { document.getElementById('thumb-lightbox-img').src = ''; }, 200);
+    }
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeThumblightbox(); });
     function renderHistory() {
       const list  = document.getElementById('panel-recent-list');
       const clear = document.getElementById('panel-clear-btn');
@@ -1715,7 +1749,7 @@
       show(clear);
       list.innerHTML = arr.map(e => `
         <div class="recent-row">
-          ${e.thumb ? `<img class="recent-thumb" src="${e.thumb}" alt="" onerror="this.style.display='none'" />` : '<div class="recent-thumb"></div>'}
+          ${e.thumb ? `<img class="recent-thumb" src="${e.thumb}" alt="" onclick="openThumblightbox(this.src)" onerror="this.style.display='none'" />` : '<div class="recent-thumb"></div>'}
           <p style="flex:1; font-size:12px; color:var(--text-secondary); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0;">${escapeHtml(e.name)}</p>
           <span style="font-size:10px; font-weight:600; color:${e.color}; background:${e.bg}; border:1px solid ${e.border}; padding:2px 7px; border-radius:4px; flex-shrink:0;">${e.label}</span>
         </div>
