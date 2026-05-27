@@ -308,6 +308,18 @@
     }
     #thumb-lightbox.open img { transform: scale(1); }
 
+    /* ── Toast ── */
+    #toast {
+      position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(20px);
+      background: var(--bg-elevated); border: 1px solid var(--border-active);
+      color: var(--text-primary); font-size: 14px; font-weight: 500;
+      padding: 12px 22px; border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+      opacity: 0; transition: opacity 0.22s ease, transform 0.22s ease;
+      pointer-events: none; z-index: 10000; white-space: nowrap;
+    }
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
     /* ── Email auth inputs ── */
     .email-auth-input {
       width: 100%;
@@ -1037,6 +1049,8 @@
     </div>
   </div>
 
+  <div id="toast"></div>
+
   <!-- THUMBNAIL LIGHTBOX -->
   <div id="thumb-lightbox" onclick="closeThumblightbox()">
     <img id="thumb-lightbox-img" src="" alt="" />
@@ -1055,7 +1069,7 @@
           <p style="font-size:28px; font-weight:800; color:var(--text-primary); margin-top:10px;">$4.99</p>
           <p style="font-size:14px; color:var(--text-secondary); margin-top:4px;">500 scans</p>
           <p style="font-size:12px; color:var(--text-muted); margin-top:6px;">One-time</p>
-          <button onclick="handlePaywallBtn()" style="margin-top:18px; width:100%; height:44px; border-radius:11px; background:var(--bg-primary); border:1px solid var(--border-active); color:var(--text-primary); font-size:14px; cursor:pointer;" class="btn-active">Buy</button>
+          <button onclick="handleBuyBtn()" style="margin-top:18px; width:100%; height:44px; border-radius:11px; background:var(--bg-primary); border:1px solid var(--border-active); color:var(--text-primary); font-size:14px; cursor:pointer;" class="btn-active">Buy</button>
         </div>
         <!-- Monthly card (featured) -->
         <div class="pay-card featured" style="padding:24px;">
@@ -1064,7 +1078,7 @@
           <p style="font-size:28px; font-weight:800; color:var(--text-primary); margin-top:10px;">$9.99<span style="font-size:14px; font-weight:400; color:var(--text-secondary);">/mo</span></p>
           <p style="font-size:14px; color:var(--text-secondary); margin-top:4px;">Unlimited scans</p>
           <p style="font-size:12px; color:var(--text-muted); margin-top:6px;">Cancel anytime</p>
-          <button onclick="handlePaywallBtn()" style="margin-top:18px; width:100%; height:44px; border-radius:11px; background:var(--accent-violet); border:none; color:#fff; font-size:14px; font-weight:600; cursor:pointer;" class="btn-active">Subscribe</button>
+          <button onclick="handleSubscribeBtn()" style="margin-top:18px; width:100%; height:44px; border-radius:11px; background:var(--accent-violet); border:none; color:#fff; font-size:14px; font-weight:600; cursor:pointer;" class="btn-active">Subscribe</button>
         </div>
       </div>
       <p style="margin-top:18px; font-size:12px; color:var(--text-muted); text-align:center;">
@@ -1101,6 +1115,9 @@
     let resetAt = null;
     let countdownTimer = null;
     let scansRemaining = loadAnonQuota();
+    let creditsRemaining = 0;
+    let subscriptionStatus = 'none';
+    let monthlyScansUsed = 0;
     let selectedFile = null;
     let scanTimer = null;
     let pendingScanScore = null;
@@ -1174,9 +1191,26 @@
     }
 
     // ── Real scan via API ──────────────────
+    function quotaSnapshot() {
+      return {
+        sub:     subscriptionStatus,
+        monthly: monthlyScansUsed,
+        credits: creditsRemaining,
+        free:    scansRemaining,
+        can:     subscriptionStatus === 'active' ? monthlyScansUsed < 5000
+                   : creditsRemaining > 0 ? true
+                   : scansRemaining > 0,
+      };
+    }
+    function deductQuota(snap) {
+      if (snap.sub === 'active')   monthlyScansUsed++;
+      else if (snap.credits > 0)   creditsRemaining--;
+      else                         scansRemaining--;
+    }
+
     async function runScan() {
       const userAtScanStart = currentUser;
-      const quotaAtStart = scansRemaining; // snapshot before async — Supabase auth events can mutate scansRemaining mid-flight on mobile
+      const snap = quotaSnapshot();
       try {
         const form = new FormData();
         if (selectedFile) {
@@ -1187,7 +1221,7 @@
         } else if (thumb.src && (thumb.src.startsWith('http://') || thumb.src.startsWith('https://'))) {
           form.append('url', thumb.src);
         } else {
-          useDemoResult(quotaAtStart);
+          useDemoResult(snap);
           return;
         }
 
@@ -1196,8 +1230,8 @@
         const { type, score, generator } = await res.json();
 
         stopScanStages();
-        if (quotaAtStart > 0) {
-          scansRemaining--;
+        if (snap.can) {
+          deductQuota(snap);
           updateProgressBar();
           pendingScanScore = score;
           pendingGenerator = generator || null;
@@ -1208,15 +1242,15 @@
           currentUser ? setState('PAYWALL') : setState('LOGIN_GATE');
         }
       } catch {
-        useDemoResult(quotaAtStart);
+        useDemoResult(snap);
       }
     }
 
-    function useDemoResult(quotaAtStart = scansRemaining) {
+    function useDemoResult(snap = quotaSnapshot()) {
       const userAtScanStart = currentUser;
       stopScanStages();
-      if (quotaAtStart > 0) {
-        scansRemaining--;
+      if (snap.can) {
+        deductQuota(snap);
         updateProgressBar();
         if (userAtScanStart) saveQuota(userAtScanStart.id);
         else saveAnonQuota();
@@ -1347,12 +1381,26 @@
     }
 
     function updateProgressBar() {
-      const maxScans = currentUser ? 10 : 5;
-      const pct = (scansRemaining / maxScans) * 100;
+      let remaining, max, label;
+      if (subscriptionStatus === 'active') {
+        remaining = 5000 - monthlyScansUsed;
+        max = 5000;
+        label = `Unlimited · ${monthlyScansUsed} used this month`;
+      } else if (creditsRemaining > 0) {
+        remaining = creditsRemaining;
+        max = 500;
+        label = `${creditsRemaining} credit${creditsRemaining !== 1 ? 's' : ''} remaining`;
+      } else {
+        remaining = scansRemaining;
+        max = currentUser ? 10 : 5;
+        label = `${scansRemaining} free scan${scansRemaining !== 1 ? 's' : ''} remaining`;
+      }
+      const pct = max > 0 ? Math.min(100, (remaining / max) * 100) : 0;
       progressFill.style.width = pct + '%';
-      progressLabel.textContent = `${scansRemaining} free scan${scansRemaining !== 1 ? 's' : ''} remaining`;
-      progressLabel.style.color = scansRemaining > 0 ? 'var(--result-green)' : 'var(--result-crimson)';
-      progressFill.style.background = scansRemaining > 0 ? 'var(--result-green)' : 'var(--result-crimson)';
+      progressLabel.textContent = label;
+      const active = remaining > 0;
+      progressLabel.style.color = active ? 'var(--result-green)' : 'var(--result-crimson)';
+      progressFill.style.background = active ? 'var(--result-green)' : 'var(--result-crimson)';
     }
 
     // ── Count-up animation ──
@@ -1621,12 +1669,36 @@
       lcard.classList.add('modal-enter');
     }
 
-    function handlePaywallBtn() {
-      if (!currentUser) {
-        closeOverlay('paywall');
-        openLoginModal('register', 'purchase');
-      }
-      // else: Stripe checkout — Phase 3
+    function handleBuyBtn() {
+      if (!currentUser) { closeOverlay('paywall'); openLoginModal('register', 'purchase'); return; }
+      startCheckout('credits');
+    }
+    function handleSubscribeBtn() {
+      if (!currentUser) { closeOverlay('paywall'); openLoginModal('register', 'purchase'); return; }
+      startCheckout('monthly');
+    }
+    async function startCheckout(plan) {
+      const btn = plan === 'credits'
+        ? document.querySelector('#overlay-paywall button.btn-active:first-of-type')
+        : document.querySelector('#overlay-paywall button.btn-active:last-of-type');
+      if (btn) { btn.disabled = true; btn.textContent = '…'; }
+      try {
+        const res = await fetch('/api/create-checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ plan, userId: currentUser.id, userEmail: currentUser.email }),
+        });
+        const data = await res.json();
+        if (data.url) { window.location.href = data.url; return; }
+        showToast('Checkout error — please try again.');
+      } catch { showToast('Checkout error — please try again.'); }
+      if (btn) { btn.disabled = false; btn.textContent = plan === 'credits' ? 'Buy' : 'Subscribe'; }
+    }
+    function showToast(msg, duration = 4000) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), duration);
     }
 
     function closeOverlay(which) {
@@ -1801,7 +1873,10 @@
     function startResetCountdown() {
       clearInterval(countdownTimer);
       const el = document.getElementById('reset-countdown');
-      if (!el || !resetAt) return;
+      if (!el) return;
+      if (subscriptionStatus === 'active') { el.textContent = 'Unlimited monthly plan active'; return; }
+      if (creditsRemaining > 0) { el.textContent = 'Credits never expire'; return; }
+      if (!resetAt) return;
       function tick() {
         const ms = resetAt - Date.now();
         if (ms <= 0) {
@@ -1908,12 +1983,14 @@
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       };
-      const rows = await (await fetch(`${base}/scan_quota?user_id=eq.${userId}&select=scans_remaining,reset_at`, { headers: h })).json();
+      const cols = 'scans_remaining,reset_at,credits_remaining,subscription_status,monthly_scans_used,monthly_reset_at';
+      const rows = await (await fetch(`${base}/scan_quota?user_id=eq.${userId}&select=${cols}`, { headers: h })).json();
       if (!rows.length) {
-        await fetch(`${base}/scan_quota`, { method: 'POST', headers: { ...h, 'Prefer': 'resolution=merge-duplicates,return=minimal' }, body: JSON.stringify({ user_id: userId, scans_remaining: 10, reset_at: newReset() }) });
-        scansRemaining = 10;
+        await fetch(`${base}/scan_quota`, { method: 'POST', headers: { ...h, 'Prefer': 'resolution=merge-duplicates,return=minimal' }, body: JSON.stringify({ user_id: userId, scans_remaining: 10, reset_at: newReset(), credits_remaining: 0, subscription_status: 'none', monthly_scans_used: 0 }) });
+        scansRemaining = 10; creditsRemaining = 0; subscriptionStatus = 'none'; monthlyScansUsed = 0;
       } else {
         const d = rows[0];
+        // Free daily quota
         if (!d.reset_at || new Date(d.reset_at) < new Date()) {
           await fetch(`${base}/scan_quota?user_id=eq.${userId}`, { method: 'PATCH', headers: { ...h, 'Prefer': 'return=minimal' }, body: JSON.stringify({ scans_remaining: 10, reset_at: newReset() }) });
           scansRemaining = 10;
@@ -1921,13 +1998,22 @@
           scansRemaining = d.scans_remaining;
           const storedReset = new Date(d.reset_at);
           const correctMidnight = getNextLondonMidnight();
-          // Migrate stale rolling reset (>24h) or iOS-bug value (>1.5h past correct midnight)
           if (storedReset - Date.now() > 86400000 || storedReset - correctMidnight > 5400000) {
             resetAt = correctMidnight;
             await fetch(`${base}/scan_quota?user_id=eq.${userId}`, { method: 'PATCH', headers: { ...h, 'Prefer': 'return=minimal' }, body: JSON.stringify({ reset_at: resetAt.toISOString() }) });
           } else {
             resetAt = storedReset;
           }
+        }
+        // Paid plan fields
+        creditsRemaining  = d.credits_remaining  ?? 0;
+        subscriptionStatus = d.subscription_status ?? 'none';
+        monthlyScansUsed  = d.monthly_scans_used  ?? 0;
+        // Reset monthly count if past monthly_reset_at
+        if (subscriptionStatus === 'active' && d.monthly_reset_at && new Date(d.monthly_reset_at) < new Date()) {
+          monthlyScansUsed = 0;
+          const nextMonthly = new Date(); nextMonthly.setMonth(nextMonthly.getMonth() + 1);
+          await fetch(`${base}/scan_quota?user_id=eq.${userId}`, { method: 'PATCH', headers: { ...h, 'Prefer': 'return=minimal' }, body: JSON.stringify({ monthly_scans_used: 0, monthly_reset_at: nextMonthly.toISOString() }) });
         }
       }
       localStorage.setItem(`ess_quota_${userId}`, scansRemaining);
@@ -1950,7 +2036,11 @@
               'Authorization': `Bearer ${token}`,
               'Prefer': 'return=representation'
             },
-            body: JSON.stringify({ scans_remaining: scansRemaining })
+            body: JSON.stringify({
+          scans_remaining:    scansRemaining,
+          credits_remaining:  creditsRemaining,
+          monthly_scans_used: monthlyScansUsed,
+        })
           }
         );
         const rows = await res.json();
@@ -2020,6 +2110,30 @@
         updateAuthUI(parsed.user);
         updateProgressBar();
       } catch {}
+    })();
+
+    // ── Payment return handling ────────────
+    (function handlePaymentReturn() {
+      const p = new URLSearchParams(window.location.search);
+      const status = p.get('payment');
+      if (!status) return;
+      history.replaceState({}, '', '/');
+      if (status === 'success') {
+        const plan = p.get('plan');
+        const msg = plan === 'monthly' ? '🎉 Subscription activated! Unlimited scans unlocked.' : '🎉 500 credits added to your account!';
+        // Poll until webhook has updated the quota (up to ~8s)
+        let tries = 0;
+        const poll = setInterval(async () => {
+          if (++tries > 5 || !currentUser) { clearInterval(poll); showToast(msg); return; }
+          await loadQuota(currentUser.id);
+          if (subscriptionStatus === 'active' || creditsRemaining > 0) {
+            clearInterval(poll);
+            showToast(msg);
+          }
+        }, 1500);
+      } else if (status === 'cancelled') {
+        showToast('Checkout cancelled — no charge was made.');
+      }
     })();
 
     sb.auth.onAuthStateChange(async (event, session) => {
