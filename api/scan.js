@@ -38,15 +38,13 @@ export default async function handler(req) {
 
   const sgScore = sgData.type?.ai_generated ?? 0;
 
-  // Call Claude as second opinion when Sightengine is very confident (most likely to be wrong)
+  // Call Claude on every scan as a second opinion and average the scores
   let finalScore = sgScore;
-  if (sgScore <= 0.20 || sgScore >= 0.80) {
-    try {
-      const claudeScore = await getClaudeAIScore(mediaBuffer, mediaType, imgUrl);
-      finalScore = (sgScore + claudeScore) / 2;
-    } catch (_) {
-      // Fall back to Sightengine only if Claude fails
-    }
+  try {
+    const claudeScore = await getClaudeAIScore(mediaBuffer, mediaType, imgUrl);
+    finalScore = (sgScore + claudeScore) / 2;
+  } catch (_) {
+    // Fall back to Sightengine only if Claude fails
   }
 
   let type;
