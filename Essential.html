@@ -1147,7 +1147,7 @@
 
     // ── File handling ──────────────────────
     function handleZoneClick() {
-      if (scansRemaining <= 0) { currentUser ? openPaywall() : openLoginModal('register'); return; }
+      if (!quotaSnapshot().can) { currentUser ? openPaywall() : openLoginModal('register'); return; }
       if (currentState === 'IDLE') fileInput.click();
     }
 
@@ -1168,7 +1168,7 @@
     function handleDrop(e) {
       e.preventDefault();
       uploadZone.classList.remove('drag-over');
-      if (scansRemaining <= 0) { currentUser ? openPaywall() : openLoginModal('register'); return; }
+      if (!quotaSnapshot().can) { currentUser ? openPaywall() : openLoginModal('register'); return; }
       const file = e.dataTransfer.files[0];
       if (file && file.type.startsWith('image/')) loadFile(file);
     }
@@ -1310,7 +1310,7 @@
           break;
 
         case 'SCANNING':
-          if (scansRemaining <= 0) { currentUser ? setState('PAYWALL') : setState('LOGIN_GATE'); break; }
+          if (!quotaSnapshot().can) { currentUser ? setState('PAYWALL') : setState('LOGIN_GATE'); break; }
           show(thumb);
           hide(zoneEmptyContent);
           show(removeBtn);
