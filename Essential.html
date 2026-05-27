@@ -702,6 +702,8 @@
       /* Hairline dividers: keep them 1px wide, no padding */
       #site-footer > div > span:empty { padding: 0 !important; width: 1px; flex-shrink: 0; }
       #site-footer > p { margin-top: 0 !important; white-space: nowrap; text-align: center; }
+      #page-wrapper > #site-footer { position: relative; }
+      #system-status { position: absolute; left: 50%; transform: translateX(-50%); }
 
 .desktop-only { display: block; }
     }
@@ -949,7 +951,7 @@
         </span>
       </div>
       <!-- System status line -->
-      <p style="margin-top:10px; font-size:10px; color:var(--text-muted); font-family:ui-monospace,'SF Mono','Fira Code',monospace; letter-spacing:0.04em; opacity:0.5;">
+      <p id="system-status" style="margin-top:10px; font-size:10px; color:var(--text-muted); font-family:ui-monospace,'SF Mono','Fira Code',monospace; letter-spacing:0.04em; opacity:0.5;">
         System Status: Nominal &nbsp;·&nbsp; Build v1.0.4
       </p>
       <p style="margin-top:8px; font-size:11px; color:var(--text-muted);">
