@@ -1634,6 +1634,14 @@
       if (which === 'paywall') overlayPaywall.classList.add('hidden');
       resultCard.classList.remove('blurred');
     }
+    function onQuotaReset() {
+      // If user was blocked by a quota gate, dismiss it so they can scan again
+      if (currentState === 'LOGIN_GATE' || currentState === 'PAYWALL') {
+        closeOverlay('login');
+        closeOverlay('paywall');
+        setState('IDLE');
+      }
+    }
 
     function openPaywall() {
       overlayPaywall.classList.remove('hidden');
@@ -1799,13 +1807,14 @@
         if (ms <= 0) {
           clearInterval(countdownTimer);
           if (currentUser) {
-            loadQuota(currentUser.id);
+            loadQuota(currentUser.id).then(() => onQuotaReset());
           } else {
             scansRemaining = 5;
             resetAt = getNextLondonMidnight();
             saveAnonQuota();
             updateProgressBar();
             startResetCountdown();
+            onQuotaReset();
           }
           return;
         }
