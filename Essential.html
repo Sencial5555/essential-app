@@ -1939,12 +1939,14 @@
         const raw = localStorage.getItem('ess_anon_quota');
         if (!raw) { resetAt = getNextLondonMidnight(); return 5; }
         const { n, reset } = JSON.parse(raw);
-        if (new Date(reset) < new Date()) {
+        const storedReset = new Date(reset);
+        if (storedReset < new Date()) {
           localStorage.removeItem('ess_anon_quota');
           resetAt = getNextLondonMidnight();
           return 5;
         }
-        resetAt = new Date(reset);
+        // If stored reset is >24h away it's from the old rolling system — migrate to London midnight
+        resetAt = (storedReset - Date.now() > 86400000) ? getNextLondonMidnight() : storedReset;
         return typeof n === 'number' ? n : 5;
       } catch { resetAt = getNextLondonMidnight(); return 5; }
     }
