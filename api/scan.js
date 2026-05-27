@@ -40,15 +40,12 @@ export default async function handler(req) {
 
   // Call Claude as second opinion when Sightengine is very confident (most likely to be wrong)
   let finalScore = sgScore;
-  let debugInfo = { sgScore, claudeCalled: false, claudeScore: null, claudeError: null };
   if (sgScore <= 0.20 || sgScore >= 0.80) {
-    debugInfo.claudeCalled = true;
     try {
       const claudeScore = await getClaudeAIScore(mediaBuffer, mediaType, imgUrl);
-      debugInfo.claudeScore = claudeScore;
       finalScore = (sgScore + claudeScore) / 2;
-    } catch (e) {
-      debugInfo.claudeError = e.message;
+    } catch (_) {
+      // Fall back to Sightengine only if Claude fails
     }
   }
 
@@ -69,7 +66,7 @@ export default async function handler(req) {
     if (generators.length > 0) generator = generators[0][0];
   }
 
-  return json({ type, score: displayScore, ai_generated: finalScore, generator, _debug: debugInfo });
+  return json({ type, score: displayScore, ai_generated: finalScore, generator });
 }
 
 async function getClaudeAIScore(mediaBuffer, mediaType, imgUrl) {
