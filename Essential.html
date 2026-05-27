@@ -1441,6 +1441,8 @@
     function renderResult(type) {
       const c = resultConfigs[type];
       lastResultType = type;
+      const displayScore = pendingScanScore !== null ? pendingScanScore : c.score;
+      pendingScanScore = null;
       resultCard.innerHTML = `
         <div style="background:${c.bg}; border:1px solid ${c.border}; border-radius:20px; padding:20px;">
           <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
@@ -1464,9 +1466,6 @@
           </div>
         </div>
       `;
-      // Count-up score — use real API score if available
-      const displayScore = pendingScanScore !== null ? pendingScanScore : c.score;
-      pendingScanScore = null;
       const ms = document.getElementById('mobile-result-score');
       if (ms) countUp(ms, displayScore);
       renderPanelResult(type, displayScore);
