@@ -1588,14 +1588,15 @@
     }
 
     // ── Auth tab switching ──────────────────
+    let modalContext = 'quota';
     const modalContent = {
-      register: {
-        title: 'You\'ve used all your free scans.',
-        subtitle: 'Create a free account to get 5 more free scans every day.'
+      quota: {
+        register: { title: 'You’ve used all your free scans.', subtitle: 'Create a free account to get 5 more free scans every day.' },
+        signin:   { title: 'Welcome back.',                        subtitle: 'Sign in to access your scan history and results.' }
       },
-      signin: {
-        title: 'Welcome back.',
-        subtitle: 'Sign in to access your scan history and results.'
+      purchase: {
+        register: { title: 'Create an account first.',             subtitle: 'You need to be signed in before purchasing a plan.' },
+        signin:   { title: 'Sign in to continue.',                 subtitle: 'Sign in to your account before purchasing a plan.' }
       }
     };
     const panelContent = {
@@ -1612,8 +1613,9 @@
     function switchModalTab(mode) {
       document.getElementById('modal-tab-register').classList.toggle('active', mode === 'register');
       document.getElementById('modal-tab-signin').classList.toggle('active', mode === 'signin');
-      document.getElementById('modal-auth-title').textContent = modalContent[mode].title;
-      document.getElementById('modal-auth-subtitle').textContent = modalContent[mode].subtitle;
+      const content = modalContent[modalContext][mode];
+      document.getElementById('modal-auth-title').textContent = content.title;
+      document.getElementById('modal-auth-subtitle').textContent = content.subtitle;
       document.getElementById('modal-email-submit').textContent = mode === 'register' ? 'Create account' : 'Sign in';
       document.getElementById('modal-auth-error').classList.add('hidden');
     }
@@ -1627,10 +1629,9 @@
       document.getElementById('panel-auth-error').classList.add('hidden');
     }
 
-    function openLoginModal(mode = 'register', overrideTitle, overrideSub) {
+    function openLoginModal(mode = 'register', context = 'quota') {
+      modalContext = context;
       switchModalTab(mode);
-      if (overrideTitle) document.getElementById('modal-auth-title').textContent = overrideTitle;
-      if (overrideSub)   document.getElementById('modal-auth-subtitle').textContent = overrideSub;
       overlayLogin.classList.remove('hidden');
       const lcard = overlayLogin.querySelector('.overlay-card');
       lcard.classList.remove('modal-enter');
@@ -1641,7 +1642,7 @@
     function handlePaywallBtn() {
       if (!currentUser) {
         closeOverlay('paywall');
-        openLoginModal('register', 'Create an account first.', 'You need to be signed in before purchasing a plan.');
+        openLoginModal('register', 'purchase');
       }
       // else: Stripe checkout — Phase 3
     }
