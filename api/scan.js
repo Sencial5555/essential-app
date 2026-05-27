@@ -13,13 +13,21 @@ export default async function handler(req) {
     return json({ error: 'No image provided' }, 400);
   }
 
+  // Read buffer once upfront so both Sightengine and Claude can use it
+  let mediaBuffer = null;
+  let mediaType   = 'image/jpeg';
+  if (media) {
+    mediaBuffer = await media.arrayBuffer();
+    mediaType   = media.type || 'image/jpeg';
+  }
+
   const sgForm = new FormData();
   sgForm.append('models', 'genai');
   sgForm.append('api_user',   process.env.SIGHTENGINE_USER);
   sgForm.append('api_secret', process.env.SIGHTENGINE_SECRET);
 
-  if (media)  sgForm.append('media', media);
-  else        sgForm.append('url', imgUrl);
+  if (mediaBuffer) sgForm.append('media', new Blob([mediaBuffer], { type: mediaType }), 'image');
+  else             sgForm.append('url', imgUrl);
 
   const sgRes  = await fetch('https://api.sightengine.com/1.0/check.json', { method: 'POST', body: sgForm });
   const sgData = await sgRes.json();
@@ -34,7 +42,7 @@ export default async function handler(req) {
   let finalScore = sgScore;
   if (sgScore <= 0.20 || sgScore >= 0.80) {
     try {
-      const claudeScore = await getClaudeAIScore(media, imgUrl);
+      const claudeScore = await getClaudeAIScore(mediaBuffer, mediaType, imgUrl);
       finalScore = (sgScore + claudeScore) / 2;
     } catch (_) {
       // Fall back to Sightengine only if Claude fails
@@ -61,15 +69,14 @@ export default async function handler(req) {
   return json({ type, score: displayScore, ai_generated: finalScore, generator });
 }
 
-async function getClaudeAIScore(media, imgUrl) {
+async function getClaudeAIScore(mediaBuffer, mediaType, imgUrl) {
   let imageSource;
 
-  if (media) {
-    const buffer = await media.arrayBuffer();
-    const bytes = new Uint8Array(buffer);
+  if (mediaBuffer) {
+    const bytes = new Uint8Array(mediaBuffer);
     let binary = '';
     for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i]);
-    imageSource = { type: 'base64', media_type: media.type || 'image/jpeg', data: btoa(binary) };
+    imageSource = { type: 'base64', media_type: mediaType, data: btoa(binary) };
   } else {
     imageSource = { type: 'url', url: imgUrl };
   }
