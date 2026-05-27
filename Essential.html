@@ -1198,6 +1198,7 @@
     // ── Real scan via API ──────────────────
     async function runScan() {
       const userAtScanStart = currentUser;
+      const quotaAtStart = scansRemaining; // snapshot before async — Supabase auth events can mutate scansRemaining mid-flight on mobile
       try {
         const form = new FormData();
         if (selectedFile) {
@@ -1208,8 +1209,7 @@
         } else if (thumb.src && (thumb.src.startsWith('http://') || thumb.src.startsWith('https://'))) {
           form.append('url', thumb.src);
         } else {
-          // Demo mode fallback (no real image)
-          useDemoResult();
+          useDemoResult(quotaAtStart);
           return;
         }
 
@@ -1218,7 +1218,7 @@
         const { type, score, generator } = await res.json();
 
         stopScanStages();
-        if (scansRemaining > 0) {
+        if (quotaAtStart > 0) {
           scansRemaining--;
           updateProgressBar();
           pendingScanScore = score;
@@ -1230,15 +1230,14 @@
           currentUser ? setState('PAYWALL') : setState('LOGIN_GATE');
         }
       } catch {
-        // Fallback to demo if API unavailable
-        useDemoResult();
+        useDemoResult(quotaAtStart);
       }
     }
 
-    function useDemoResult() {
+    function useDemoResult(quotaAtStart = scansRemaining) {
       const userAtScanStart = currentUser;
       stopScanStages();
-      if (scansRemaining > 0) {
+      if (quotaAtStart > 0) {
         scansRemaining--;
         updateProgressBar();
         if (userAtScanStart) saveQuota(userAtScanStart.id);
