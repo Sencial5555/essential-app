@@ -1682,19 +1682,27 @@
       if (!key) return;
       try { localStorage.setItem(key, JSON.stringify(arr.slice(0, 50))); } catch {}
     }
-    function blobToDataUrl(blobUrl, size = 64) {
+    function blobToDataUrls(blobUrl) {
       return new Promise(resolve => {
         const img = new Image();
         img.onload = () => {
-          const canvas = document.createElement('canvas');
-          canvas.width = size; canvas.height = size;
-          const ctx = canvas.getContext('2d');
-          const scale = Math.max(size / img.naturalWidth, size / img.naturalHeight);
-          const w = img.naturalWidth * scale, h = img.naturalHeight * scale;
-          ctx.drawImage(img, (size - w) / 2, (size - h) / 2, w, h);
-          resolve(canvas.toDataURL('image/jpeg', 0.7));
+          // 64x64 square crop for list thumbnail
+          const tc = document.createElement('canvas');
+          tc.width = 64; tc.height = 64;
+          const ts = Math.max(64 / img.naturalWidth, 64 / img.naturalHeight);
+          tc.getContext('2d').drawImage(img, (64 - img.naturalWidth * ts) / 2, (64 - img.naturalHeight * ts) / 2, img.naturalWidth * ts, img.naturalHeight * ts);
+          const thumb = tc.toDataURL('image/jpeg', 0.7);
+          // Full size capped at 900px for lightbox
+          const MAX = 900;
+          let fw = img.naturalWidth, fh = img.naturalHeight;
+          if (fw > MAX || fh > MAX) { const sc = MAX / Math.max(fw, fh); fw = Math.round(fw * sc); fh = Math.round(fh * sc); }
+          const fc = document.createElement('canvas');
+          fc.width = fw; fc.height = fh;
+          fc.getContext('2d').drawImage(img, 0, 0, fw, fh);
+          const full = fc.toDataURL('image/jpeg', 0.88);
+          resolve({ thumb, full });
         };
-        img.onerror = () => resolve('');
+        img.onerror = () => resolve({ thumb: '', full: '' });
         img.src = blobUrl;
       });
     }
@@ -1703,17 +1711,19 @@
       const p = panelResultConfigs[type];
       const srcThumb = document.getElementById('thumb');
       const name = (selectedFile && selectedFile.name) || 'image';
-      let thumb = '';
+      let thumb = '', full = '';
       if (srcThumb && srcThumb.src && !srcThumb.src.endsWith('BAEAAAAALAAAAAABAAEAAAIBRAA7')) {
-        thumb = srcThumb.src.startsWith('blob:')
-          ? await blobToDataUrl(srcThumb.src)
-          : srcThumb.src;
+        if (srcThumb.src.startsWith('blob:')) {
+          ({ thumb, full } = await blobToDataUrls(srcThumb.src));
+        } else {
+          thumb = full = srcThumb.src;
+        }
       }
       const entry = {
         type, label: p.label, color: p.color, bg: p.bg, border: p.border, score: p.score, name,
-        thumb, at: Date.now()
+        thumb, full, at: Date.now()
       };
-      const arr = [entry, ...loadHistory()].slice(0, 50);
+      const arr = [entry, ...loadHistory()].slice(0, 20);
       saveHistory(arr);
       renderHistory();
     }
@@ -1732,6 +1742,10 @@
       setTimeout(() => { document.getElementById('thumb-lightbox-img').src = ''; }, 200);
     }
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closeThumblightbox(); });
+    document.getElementById('panel-recent-list').addEventListener('click', e => {
+      const img = e.target.closest('img.recent-thumb');
+      if (img && img.dataset.full) openThumblightbox(img.dataset.full);
+    });
     function renderHistory() {
       const list  = document.getElementById('panel-recent-list');
       const clear = document.getElementById('panel-clear-btn');
@@ -1749,7 +1763,7 @@
       show(clear);
       list.innerHTML = arr.map(e => `
         <div class="recent-row">
-          ${e.thumb ? `<img class="recent-thumb" src="${e.thumb}" alt="" onclick="openThumblightbox(this.src)" onerror="this.style.display='none'" />` : '<div class="recent-thumb"></div>'}
+          ${e.thumb ? `<img class="recent-thumb" src="${e.thumb}" alt="" data-full="${e.full || e.thumb}" onerror="this.style.display='none'" />` : '<div class="recent-thumb"></div>'}
           <p style="flex:1; font-size:12px; color:var(--text-secondary); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0;">${escapeHtml(e.name)}</p>
           <span style="font-size:10px; font-weight:600; color:${e.color}; background:${e.bg}; border:1px solid ${e.border}; padding:2px 7px; border-radius:4px; flex-shrink:0;">${e.label}</span>
         </div>
