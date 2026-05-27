@@ -1659,15 +1659,36 @@
       if (!key) return;
       try { localStorage.setItem(key, JSON.stringify(arr.slice(0, 50))); } catch {}
     }
-    function pushHistory(type) {
+    function blobToDataUrl(blobUrl, size = 64) {
+      return new Promise(resolve => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = size; canvas.height = size;
+          const ctx = canvas.getContext('2d');
+          const scale = Math.max(size / img.naturalWidth, size / img.naturalHeight);
+          const w = img.naturalWidth * scale, h = img.naturalHeight * scale;
+          ctx.drawImage(img, (size - w) / 2, (size - h) / 2, w, h);
+          resolve(canvas.toDataURL('image/jpeg', 0.7));
+        };
+        img.onerror = () => resolve('');
+        img.src = blobUrl;
+      });
+    }
+    async function pushHistory(type) {
       if (!currentUser) { renderHistory(); return; }
       const p = panelResultConfigs[type];
       const srcThumb = document.getElementById('thumb');
       const name = (selectedFile && selectedFile.name) || 'image';
+      let thumb = '';
+      if (srcThumb && srcThumb.src && !srcThumb.src.endsWith('BAEAAAAALAAAAAABAAEAAAIBRAA7')) {
+        thumb = srcThumb.src.startsWith('blob:')
+          ? await blobToDataUrl(srcThumb.src)
+          : srcThumb.src;
+      }
       const entry = {
         type, label: p.label, color: p.color, bg: p.bg, border: p.border, score: p.score, name,
-        thumb: (srcThumb && srcThumb.src && !srcThumb.src.endsWith('BAEAAAAALAAAAAABAAEAAAIBRAA7')) ? srcThumb.src : '',
-        at: Date.now()
+        thumb, at: Date.now()
       };
       const arr = [entry, ...loadHistory()].slice(0, 50);
       saveHistory(arr);
