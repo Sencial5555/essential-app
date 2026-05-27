@@ -832,7 +832,7 @@
           <p id="progress-label" style="font-size:13px; color:var(--result-green); font-weight:500;">
             5 free scans remaining
           </p>
-          <p id="reset-countdown" style="font-size:12px; color:var(--text-muted); font-variant-numeric:tabular-nums;">--:--:--</p>
+          <p id="reset-countdown" style="font-size:12px; color:var(--text-muted); font-variant-numeric:tabular-nums;">Free scans reset in --:--:--</p>
         </div>
       </div>
 
@@ -1732,7 +1732,7 @@
           return;
         }
         const pad = n => String(n).padStart(2, '0');
-        el.textContent = `${pad(Math.floor(ms / 3600000))}:${pad(Math.floor(ms % 3600000 / 60000))}:${pad(Math.floor(ms % 60000 / 1000))}`;
+        el.textContent = `Free scans reset in ${pad(Math.floor(ms / 3600000))}:${pad(Math.floor(ms % 3600000 / 60000))}:${pad(Math.floor(ms % 60000 / 1000))}`;
       }
       tick();
       countdownTimer = setInterval(tick, 1000);
