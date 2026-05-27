@@ -2124,10 +2124,11 @@
         // Poll until webhook has updated the quota (up to ~8s)
         let tries = 0;
         const poll = setInterval(async () => {
-          if (++tries > 5 || !currentUser) { clearInterval(poll); showToast(msg); return; }
+          if (++tries > 5 || !currentUser) { clearInterval(poll); onQuotaReset(); showToast(msg); return; }
           await loadQuota(currentUser.id);
           if (subscriptionStatus === 'active' || creditsRemaining > 0) {
             clearInterval(poll);
+            onQuotaReset();
             showToast(msg);
           }
         }, 1500);
