@@ -11,7 +11,7 @@ export default async function handler(req) {
     ? process.env.STRIPE_CREDITS_PRICE_ID
     : process.env.STRIPE_MONTHLY_PRICE_ID;
 
-  const origin = 'https://essentialai-app.vercel.app';
+  const origin = 'https://www.essentialai-app.com';
   const mode   = plan === 'credits' ? 'payment' : 'subscription';
 
   const params = new URLSearchParams({
