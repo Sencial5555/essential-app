@@ -40,12 +40,15 @@ export default async function handler(req) {
 
   // Call Claude as second opinion when Sightengine is very confident (most likely to be wrong)
   let finalScore = sgScore;
+  let debugInfo = { sgScore, claudeCalled: false, claudeScore: null, claudeError: null };
   if (sgScore <= 0.20 || sgScore >= 0.80) {
+    debugInfo.claudeCalled = true;
     try {
       const claudeScore = await getClaudeAIScore(mediaBuffer, mediaType, imgUrl);
+      debugInfo.claudeScore = claudeScore;
       finalScore = (sgScore + claudeScore) / 2;
-    } catch (_) {
-      // Fall back to Sightengine only if Claude fails
+    } catch (e) {
+      debugInfo.claudeError = e.message;
     }
   }
 
@@ -66,7 +69,7 @@ export default async function handler(req) {
     if (generators.length > 0) generator = generators[0][0];
   }
 
-  return json({ type, score: displayScore, ai_generated: finalScore, generator });
+  return json({ type, score: displayScore, ai_generated: finalScore, generator, _debug: debugInfo });
 }
 
 async function getClaudeAIScore(mediaBuffer, mediaType, imgUrl) {
@@ -75,7 +78,10 @@ async function getClaudeAIScore(mediaBuffer, mediaType, imgUrl) {
   if (mediaBuffer) {
     const bytes = new Uint8Array(mediaBuffer);
     let binary = '';
-    for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i]);
+    const chunkSize = 8192;
+    for (let i = 0; i < bytes.length; i += chunkSize) {
+      binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
+    }
     imageSource = { type: 'base64', media_type: mediaType, data: btoa(binary) };
   } else {
     imageSource = { type: 'url', url: imgUrl };
