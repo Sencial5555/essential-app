@@ -38,13 +38,15 @@ export default async function handler(req) {
 
   const sgScore = sgData.type?.ai_generated ?? 0;
 
-  // Call Claude on every scan as a second opinion and average the scores
+  // Call Claude as second opinion when Sightengine is very confident it's AI
   let finalScore = sgScore;
-  try {
-    const claudeScore = await getClaudeAIScore(mediaBuffer, mediaType, imgUrl);
-    finalScore = (sgScore + claudeScore) / 2;
-  } catch (_) {
-    // Fall back to Sightengine only if Claude fails
+  if (sgScore >= 0.80) {
+    try {
+      const claudeScore = await getClaudeAIScore(mediaBuffer, mediaType, imgUrl);
+      finalScore = (sgScore + claudeScore) / 2;
+    } catch (_) {
+      // Fall back to Sightengine only if Claude fails
+    }
   }
 
   let type;
