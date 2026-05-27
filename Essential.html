@@ -1079,7 +1079,7 @@
           <p style="font-size:28px; font-weight:800; color:var(--text-primary); margin-top:10px;">$4.99</p>
           <p style="font-size:14px; color:var(--text-secondary); margin-top:4px;">100 scans</p>
           <p style="font-size:12px; color:var(--text-muted); margin-top:6px;">One-time</p>
-          <button style="margin-top:18px; width:100%; height:44px; border-radius:11px; background:var(--bg-primary); border:1px solid var(--border-active); color:var(--text-primary); font-size:14px; cursor:pointer;" class="btn-active">Buy</button>
+          <button onclick="handlePaywallBtn()" style="margin-top:18px; width:100%; height:44px; border-radius:11px; background:var(--bg-primary); border:1px solid var(--border-active); color:var(--text-primary); font-size:14px; cursor:pointer;" class="btn-active">Buy</button>
         </div>
         <!-- Monthly card (featured) -->
         <div class="pay-card featured" style="padding:24px;">
@@ -1088,7 +1088,7 @@
           <p style="font-size:28px; font-weight:800; color:var(--text-primary); margin-top:10px;">$9.99<span style="font-size:14px; font-weight:400; color:var(--text-secondary);">/mo</span></p>
           <p style="font-size:14px; color:var(--text-secondary); margin-top:4px;">500 scans</p>
           <p style="font-size:12px; color:var(--text-muted); margin-top:6px;">Cancel anytime</p>
-          <button style="margin-top:18px; width:100%; height:44px; border-radius:11px; background:var(--accent-violet); border:none; color:#fff; font-size:14px; font-weight:600; cursor:pointer;" class="btn-active">Subscribe</button>
+          <button onclick="handlePaywallBtn()" style="margin-top:18px; width:100%; height:44px; border-radius:11px; background:var(--accent-violet); border:none; color:#fff; font-size:14px; font-weight:600; cursor:pointer;" class="btn-active">Subscribe</button>
         </div>
       </div>
       <p style="margin-top:18px; font-size:12px; color:var(--text-muted); text-align:center;">
@@ -1627,13 +1627,23 @@
       document.getElementById('panel-auth-error').classList.add('hidden');
     }
 
-    function openLoginModal(mode = 'register') {
+    function openLoginModal(mode = 'register', overrideTitle, overrideSub) {
       switchModalTab(mode);
+      if (overrideTitle) document.getElementById('modal-auth-title').textContent = overrideTitle;
+      if (overrideSub)   document.getElementById('modal-auth-subtitle').textContent = overrideSub;
       overlayLogin.classList.remove('hidden');
       const lcard = overlayLogin.querySelector('.overlay-card');
       lcard.classList.remove('modal-enter');
       void lcard.offsetWidth;
       lcard.classList.add('modal-enter');
+    }
+
+    function handlePaywallBtn() {
+      if (!currentUser) {
+        closeOverlay('paywall');
+        openLoginModal('register', 'Create an account first.', 'You need to be signed in before purchasing a plan.');
+      }
+      // else: Stripe checkout — Phase 3
     }
 
     function closeOverlay(which) {
