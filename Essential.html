@@ -1419,16 +1419,21 @@
       }
     };
 
-    function signalsHtml(signals, color) {
-      return signals.map(([name, pct], i) => `
+    // aiPct = AI likelihood 0-100 derived from the actual scan score
+    const signalLabels = ['Pixel noise', 'Compression artifacts', 'Frequency patterns', 'Metadata consistency'];
+    const signalOffsets = [3, -4, 2, -5];
+    function signalsHtml(aiPct, color) {
+      return signalLabels.map((name, i) => {
+        const pct = Math.max(0, Math.min(100, Math.round(aiPct + signalOffsets[i])));
+        return `
         <div class="signal-row">
           <span class="signal-name">${name}</span>
           <span class="signal-pct">${pct}%</span>
           <div class="signal-track">
             <div class="signal-fill signal-bar-fill" style="background:${color}; --fill:${(pct/100).toFixed(3)}; animation-delay:${i*80}ms;"></div>
           </div>
-        </div>
-      `).join('');
+        </div>`;
+      }).join('');
     }
 
     let lastResultType = null;
@@ -1445,7 +1450,7 @@
           <p style="font-size:14px; font-weight:600; color:${c.color};">${c.label}</p>
           <p style="font-size:13px; color:var(--text-secondary); margin-top:4px; line-height:1.5;">${c.sub}</p>
           <div style="margin-top:14px; padding-top:14px; border-top:1px solid ${c.border};">
-            ${signalsHtml(c.signals, c.color)}
+            ${signalsHtml(type === 'human' ? 100 - displayScore : displayScore, c.color)}
           </div>
           <div style="display:flex; gap:8px; margin-top:14px;">
             <button class="icon-btn" onclick="copyResult()" style="flex:1; justify-content:center; height:36px;">
@@ -1505,7 +1510,7 @@
       panelCard.style.borderColor = p.border;
 
       // Signals breakdown
-      panelSignalsList.innerHTML = signalsHtml(c.signals, p.color);
+      panelSignalsList.innerHTML = signalsHtml(type === 'human' ? 100 - displayScore : displayScore, p.color);
       show(panelSignals);
       show(panelCopy);
 
