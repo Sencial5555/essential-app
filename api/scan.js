@@ -43,14 +43,16 @@ export default async function handler(req) {
   const sgScore = sgOk ? (sgData.type?.ai_generated ?? 0) : null;
 
   let visual    = null;
+  let technical = null;
   let generator = null;
 
   // If Sightengine failed (e.g. binary upload not supported), Claude is the sole signal
   let finalScore;
   if (sgOk) {
+    technical  = Math.round(sgScore * 100);
     finalScore = sgScore;
     if (claudeResult) {
-      visual    = claudeResult.ai_probability;
+      visual    = claudeResult.visual_style;
       generator = claudeResult.generator;
       if (sgScore <= 0.10) {
         if (claudeResult.ai_probability >= 70) {
@@ -62,7 +64,8 @@ export default async function handler(req) {
     }
   } else if (claudeResult) {
     finalScore = claudeResult.ai_probability / 100;
-    visual     = claudeResult.ai_probability;
+    technical  = claudeResult.technical_fingerprint;
+    visual     = claudeResult.visual_style;
     generator  = claudeResult.generator;
   } else {
     return json({ error: 'Analysis failed' }, 502);
@@ -86,7 +89,7 @@ export default async function handler(req) {
     type,
     score:        displayScore,
     ai_generated: finalScore,
-    technical:    sgOk ? Math.round(sgScore * 100) : null,
+    technical,
     visual,
     generator,
   });
@@ -145,7 +148,7 @@ async function getClaudeAnalysis(mediaBuffer, mediaType, imgUrl) {
           role: 'user',
           content: [
             { type: 'image', source: imageSource },
-            { type: 'text', text: 'Is this image AI-generated or a real photograph? Reply ONLY with valid JSON, nothing else: {"ai_probability":<integer 0-100>,"generator":"<midjourney|dalle|stable_diffusion|flux|firefly|ideogram|gpt4o|null>"} where ai_probability 0=real photo 100=AI-generated, generator=most likely AI source or null.' }
+            { type: 'text', text: 'Is this image AI-generated or a real photograph? Reply ONLY with valid JSON, nothing else: {"ai_probability":<integer 0-100>,"technical_fingerprint":<integer 0-100>,"visual_style":<integer 0-100>,"generator":"<midjourney|dalle|stable_diffusion|flux|firefly|ideogram|gpt4o|null>"} where ai_probability=overall 0=real 100=AI, technical_fingerprint=pixel artifacts/unnatural frequency patterns/geometric perfection 0-100, visual_style=aesthetic AI patterns/lighting/texture/smoothness 0-100, generator=most likely AI source or null.' }
           ]
         }]
       }),
@@ -155,11 +158,14 @@ async function getClaudeAnalysis(mediaBuffer, mediaType, imgUrl) {
 
     const data = await res.json();
     const text = data.content?.[0]?.text ?? '';
-    const parsed          = JSON.parse(text.match(/\{[\s\S]*\}/)?.[0] ?? '{}');
-    const ai_probability = Math.min(100, Math.max(0, parseInt(parsed.ai_probability) || 50));
-    const allowed        = ['midjourney','dalle','stable_diffusion','flux','firefly','ideogram','gpt4o'];
-    const generator      = allowed.includes(parsed.generator) ? parsed.generator : null;
-    return { ai_probability, generator };
+    const parsed              = JSON.parse(text.match(/\{[\s\S]*\}/)?.[0] ?? '{}');
+    const clamp               = (v, fb) => Math.min(100, Math.max(0, parseInt(v) || fb));
+    const ai_probability      = clamp(parsed.ai_probability, 50);
+    const technical_fingerprint = clamp(parsed.technical_fingerprint, ai_probability);
+    const visual_style        = clamp(parsed.visual_style, ai_probability);
+    const allowed             = ['midjourney','dalle','stable_diffusion','flux','firefly','ideogram','gpt4o'];
+    const generator           = allowed.includes(parsed.generator) ? parsed.generator : null;
+    return { ai_probability, technical_fingerprint, visual_style, generator };
   } catch (_) {
     clearTimeout(timer);
     return { ai_probability: 50, generator: null };
