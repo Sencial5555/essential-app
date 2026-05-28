@@ -199,13 +199,16 @@ function rowHtml(name, fill, label, color) {
   `;
 }
 
-async function notifyWebsite() {
-  try {
-    const tabs = await chrome.tabs.query({ url: 'https://www.essentialai-app.com/*' });
-    for (const tab of tabs) {
-      chrome.tabs.sendMessage(tab.id, { type: 'quota-changed' }).catch(() => {});
-    }
-  } catch (_) {}
+function notifyWebsite() {
+  chrome.tabs.query({ url: 'https://www.essentialai-app.com/*' })
+    .then(tabs => tabs.forEach(tab =>
+      chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        world: 'MAIN',
+        func: () => window.dispatchEvent(new CustomEvent('essential:quota-changed')),
+      }).catch(() => {})
+    ))
+    .catch(() => {});
 }
 
 async function syncFromOpenTab() {

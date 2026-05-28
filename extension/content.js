@@ -18,8 +18,3 @@ function syncAuth() {
 syncAuth();
 window.addEventListener('storage', syncAuth);
 
-chrome.runtime.onMessage.addListener((msg) => {
-  if (msg.type === 'quota-changed') {
-    window.dispatchEvent(new CustomEvent('essential:quota-changed'));
-  }
-});
