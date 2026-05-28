@@ -59,14 +59,23 @@ export default async function handler(req) {
     : Math.round(finalScore * 100);
 
   let generator = null;
-  if (type !== 'human' && sgData.type?.ai_generators) {
-    const generators = Object.entries(sgData.type.ai_generators)
-      .filter(([, v]) => typeof v === 'number' && v > 0.1)
+  let generators = {};
+
+  if (sgData.type?.ai_generators) {
+    const entries = Object.entries(sgData.type.ai_generators)
+      .filter(([, v]) => typeof v === 'number')
       .sort(([, a], [, b]) => b - a);
-    if (generators.length > 0) generator = generators[0][0];
+
+    if (type !== 'human' && entries.length > 0 && entries[0][1] > 0.1) {
+      generator = entries[0][0];
+    }
+
+    generators = Object.fromEntries(
+      entries.slice(0, 5).map(([k, v]) => [k, Math.round(v * 100)])
+    );
   }
 
-  return json({ type, score: displayScore, ai_generated: finalScore, generator });
+  return json({ type, score: displayScore, ai_generated: finalScore, generator, generators });
 }
 
 async function getClaudeAIScore(mediaBuffer, mediaType, imgUrl) {

@@ -866,7 +866,7 @@
 
         <!-- Signal breakdown — only shown after a real scan -->
         <div id="panel-signals" class="hidden" style="margin-top:16px; padding-top:14px; border-top:1px solid var(--border-subtle);">
-          <p style="font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.12em; margin-bottom:6px;">Signal Breakdown</p>
+          <p style="font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.12em; margin-bottom:6px;">Generator Analysis</p>
           <div id="panel-signals-list"><!-- populated by JS --></div>
         </div>
       </div>
@@ -1070,6 +1070,7 @@
     let scanTimer = null;
     let pendingScanScore = null;
     let pendingGenerator = null;
+    let pendingGenerators = null;
 
     // ── DOM refs ───────────────────────────
     const uploadZone       = document.getElementById('upload-zone');
@@ -1175,7 +1176,7 @@
 
         const res = await fetch('/api/scan', { method: 'POST', body: form });
         if (!res.ok) throw new Error('API error');
-        const { type, score, generator } = await res.json();
+        const { type, score, generator, generators } = await res.json();
 
         stopScanStages();
         if (snap.can) {
@@ -1183,6 +1184,7 @@
           updateProgressBar();
           pendingScanScore = score;
           pendingGenerator = generator || null;
+          pendingGenerators = generators || null;
           setState('RESULT_' + type.toUpperCase());
           if (userAtScanStart) saveQuota(userAtScanStart.id);
           else saveAnonQuota();
@@ -1399,12 +1401,6 @@
         bg: 'rgba(62,124,120,0.06)',
         border: 'rgba(62,124,120,0.22)',
         icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--result-green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`,
-        signals: [
-          ['Pixel noise',        18],
-          ['Compression artifacts', 22],
-          ['Frequency patterns', 14],
-          ['Metadata consistency', 12]
-        ]
       },
       suspicious: {
         score: 61,
@@ -1414,12 +1410,6 @@
         bg: 'rgba(212,160,90,0.06)',
         border: 'rgba(212,160,90,0.25)',
         icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--result-amber)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`,
-        signals: [
-          ['Pixel noise',        58],
-          ['Compression artifacts', 64],
-          ['Frequency patterns', 71],
-          ['Metadata consistency', 49]
-        ]
       },
       ai: {
         score: 97,
@@ -1429,21 +1419,25 @@
         bg: 'rgba(212,106,94,0.06)',
         border: 'rgba(212,106,94,0.25)',
         icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--result-crimson)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`,
-        signals: [
-          ['Pixel noise',        92],
-          ['Compression artifacts', 88],
-          ['Frequency patterns', 96],
-          ['Metadata consistency', 84]
-        ]
       }
     };
 
-    // aiPct = AI likelihood 0-100 derived from the actual scan score
-    const signalLabels = ['Pixel noise', 'Compression artifacts', 'Frequency patterns', 'Metadata anomalies'];
-    const signalOffsets = [3, -4, 2, -5];
-    function signalsHtml(aiPct, color) {
-      return signalLabels.map((name, i) => {
-        const pct = Math.max(0, Math.min(100, Math.round(aiPct + signalOffsets[i])));
+    const generatorDisplayNames = {
+      midjourney:       'Midjourney',
+      dalle:            'DALL·E',
+      stable_diffusion: 'Stable Diffusion',
+      flux:             'Flux',
+      firefly:          'Adobe Firefly',
+      ideogram:         'Ideogram',
+      gpt4o:            'GPT-4o Image',
+    };
+
+    function generatorsHtml(generators, color) {
+      if (!generators || Object.keys(generators).length === 0) {
+        return `<p style="font-size:12px; color:var(--text-muted); padding:4px 0;">No generator signatures detected.</p>`;
+      }
+      return Object.entries(generators).map(([key, pct], i) => {
+        const name = generatorDisplayNames[key] || key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
         return `
         <div class="signal-row">
           <span class="signal-name">${name}</span>
@@ -1471,7 +1465,7 @@
           <p style="font-size:14px; font-weight:600; color:${c.color};">${c.label}</p>
           <p style="font-size:13px; color:var(--text-secondary); margin-top:4px; line-height:1.5;">${c.sub}</p>
           <div style="margin-top:14px; padding-top:14px; border-top:1px solid ${c.border};">
-            ${signalsHtml(type === 'human' ? 100 - displayScore : displayScore, c.color)}
+            ${generatorsHtml(pendingGenerators, c.color)}
           </div>
           <div style="display:flex; gap:8px; margin-top:14px;">
             <button class="icon-btn" onclick="copyResult()" style="flex:1; justify-content:center; height:36px;">
@@ -1527,8 +1521,9 @@
       pendingGenerator = null;
       panelCard.style.borderColor = p.border;
 
-      // Signals breakdown
-      panelSignalsList.innerHTML = signalsHtml(type === 'human' ? 100 - displayScore : displayScore, p.color);
+      // Generator breakdown
+      panelSignalsList.innerHTML = generatorsHtml(pendingGenerators, p.color);
+      pendingGenerators = null;
       show(panelSignals);
       show(panelCopy);
       show(document.getElementById('panel-disclaimer'));
