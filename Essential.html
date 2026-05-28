@@ -860,7 +860,6 @@
               <span id="panel-result-badge" style="font-size:11px; font-weight:600; color:var(--result-green); background:rgba(95,168,130,0.1); border:1px solid rgba(62,124,120,0.25); padding:2px 8px; border-radius:5px; letter-spacing:0.04em;">Human</span>
             </div>
             <p id="panel-result-desc" style="font-size:12px; color:var(--text-secondary); line-height:1.55;">No AI generation signatures detected.</p>
-            <p id="panel-disclaimer" class="hidden" style="font-size:11px; color:var(--text-secondary); line-height:1.5; margin-top:8px; padding-top:8px; border-top:1px solid var(--border-subtle);">Results are probabilistic and may not be 100% accurate. Heavily edited or filtered photos may return false positives.</p>
           </div>
         </div>
 
@@ -958,6 +957,7 @@
       <p style="margin-top:8px; font-size:11px; color:var(--text-secondary);">
         <a href="/privacy.html" style="color:var(--text-secondary); text-decoration:none;" onmouseover="this.style.color='var(--accent-blue)'" onmouseout="this.style.color='var(--text-secondary)'">Privacy Policy</a>
       </p>
+      <p style="margin-top:6px; font-size:10px; color:var(--text-muted);">Results are probabilistic. Stylized or edited images may affect accuracy.</p>
     </footer>
 
   </div><!-- /page wrapper -->
@@ -1533,7 +1533,6 @@
       pendingTechnical = null;
       pendingVisual    = null;
       show(panelCopy);
-      show(document.getElementById('panel-disclaimer'));
 
       // Thumbnail
       const srcThumb = document.getElementById('thumb');
@@ -1566,7 +1565,6 @@
       panelThumb.removeAttribute('src');
       hide(panelSignals);
       hide(panelCopy);
-      hide(document.getElementById('panel-disclaimer'));
     }
 
     // ── Auth tab switching ──────────────────
