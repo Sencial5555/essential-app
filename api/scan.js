@@ -49,15 +49,17 @@ export default async function handler(req) {
 
   // Always call Claude for visual assessment.
   // Blend its score into the final only for borderline-human cases (Sightengine ≤10% AI).
-  let finalScore = sgScore;
-  let visual     = null;
-  let generator  = null;
-  let location   = null;
+  let finalScore          = sgScore;
+  let visual              = null;
+  let generator           = null;
+  let location            = null;
+  let location_confidence = null;
   try {
     const claudeResult = await getClaudeAnalysis(mediaBuffer, mediaType, imgUrl);
     visual    = claudeResult.ai_probability;
     generator = claudeResult.generator;
-    location  = claudeResult.location;
+    location            = claudeResult.location;
+    location_confidence = claudeResult.location_confidence;
     if (sgScore <= 0.10) {
       if (claudeResult.ai_probability >= 70) {
         // Claude strongly disagrees with Sightengine — trust it (slight discount for single-source)
@@ -84,7 +86,8 @@ export default async function handler(req) {
     technical:   Math.round(sgScore * 100),
     visual,
     generator,
-    location:    type !== 'ai' ? location : null,
+    location:             type !== 'ai' ? location            : null,
+    location_confidence:  type !== 'ai' ? location_confidence : null,
   });
 }
 
@@ -111,12 +114,12 @@ async function getClaudeAnalysis(mediaBuffer, mediaType, imgUrl) {
     },
     body: JSON.stringify({
       model:      'claude-haiku-4-5-20251001',
-      max_tokens: 120,
+      max_tokens: 150,
       messages: [{
         role: 'user',
         content: [
           { type: 'image', source: imageSource },
-          { type: 'text', text: 'Is this image AI-generated or a real photograph? Reply ONLY with valid JSON, nothing else: {"ai_probability":<integer 0-100>,"generator":"<midjourney|dalle|stable_diffusion|flux|firefly|ideogram|gpt4o|null>","location":"<city and country if real photo and location is clearly identifiable from visual content, otherwise null>"} where ai_probability 0=real photo 100=AI-generated, generator=most likely AI source or null if real/uncertain, location=null if AI-generated or location cannot be confidently determined.' }
+          { type: 'text', text: 'Is this image AI-generated or a real photograph? Reply ONLY with valid JSON, nothing else: {"ai_probability":<integer 0-100>,"generator":"<midjourney|dalle|stable_diffusion|flux|firefly|ideogram|gpt4o|null>","location":"<city and country if real photo and location identifiable, otherwise null>","location_confidence":"<high|medium|low|null>"} where ai_probability 0=real photo 100=AI-generated, generator=most likely AI source or null, location=null if AI-generated or unidentifiable, location_confidence=null if no location.' }
         ]
       }]
     })
@@ -129,9 +132,11 @@ async function getClaudeAnalysis(mediaBuffer, mediaType, imgUrl) {
     const ai_probability = Math.min(100, Math.max(0, parseInt(parsed.ai_probability) || 50));
     const allowed     = ['midjourney','dalle','stable_diffusion','flux','firefly','ideogram','gpt4o'];
     const generator   = allowed.includes(parsed.generator) ? parsed.generator : null;
-    const location    = (typeof parsed.location === 'string' && parsed.location.trim() && parsed.location !== 'null')
-                          ? parsed.location.trim() : null;
-    return { ai_probability, generator, location };
+    const location     = (typeof parsed.location === 'string' && parsed.location.trim() && parsed.location !== 'null')
+                           ? parsed.location.trim() : null;
+    const confAllowed  = ['high', 'medium'];
+    const location_confidence = confAllowed.includes(parsed.location_confidence) ? parsed.location_confidence : null;
+    return { ai_probability, generator, location: location_confidence ? location : null, location_confidence };
   } catch (_) {
     return { ai_probability: 50, generator: null };
   }
