@@ -44,6 +44,7 @@ export default async function handler(req) {
 
   let visual    = null;
   let technical = null;
+  let semantic  = null;
   let generator = null;
 
   // If Sightengine failed (e.g. binary upload not supported), Claude is the sole signal
@@ -53,6 +54,7 @@ export default async function handler(req) {
     finalScore = sgScore;
     if (claudeResult) {
       visual    = claudeResult.visual_style;
+      semantic  = claudeResult.semantic_anomaly;
       generator = claudeResult.generator;
       if (sgScore <= 0.10) {
         if (claudeResult.ai_probability >= 70) {
@@ -61,12 +63,21 @@ export default async function handler(req) {
           finalScore = (sgScore + claudeResult.ai_probability / 100) / 2;
         }
       }
+      // Semantic override: impossible/surreal content is a strong AI signal
+      // even when pixel-level analysis looks clean
+      if (semantic >= 80 && finalScore < 0.70) {
+        finalScore = Math.max(finalScore, 0.75);
+      }
     }
   } else if (claudeResult) {
     technical  = claudeResult.technical_fingerprint;
     visual     = claudeResult.visual_style;
+    semantic   = claudeResult.semantic_anomaly;
     generator  = claudeResult.generator;
-    finalScore = (technical + visual) / 200;
+    // Weight toward the highest-confidence signal when any is very confident
+    const max = Math.max(technical, visual, semantic);
+    const avg = (technical + visual + semantic) / 3;
+    finalScore = max >= 75 ? (avg * 0.4 + max * 0.6) / 100 : avg / 100;
   } else {
     return json({ error: 'Analysis failed' }, 502);
   }
@@ -91,6 +102,7 @@ export default async function handler(req) {
     ai_generated: finalScore,
     technical,
     visual,
+    semantic,
     generator,
   });
 }
@@ -143,12 +155,12 @@ async function getClaudeAnalysis(mediaBuffer, mediaType, imgUrl) {
       },
       body: JSON.stringify({
         model:      'claude-haiku-4-5-20251001',
-        max_tokens: 150,
+        max_tokens: 200,
         messages: [{
           role: 'user',
           content: [
             { type: 'image', source: imageSource },
-            { type: 'text', text: 'Is this image AI-generated or a real photograph? Reply ONLY with valid JSON, nothing else: {"ai_probability":<integer 0-100>,"technical_fingerprint":<integer 0-100>,"visual_style":<integer 0-100>,"generator":"<midjourney|dalle|stable_diffusion|flux|firefly|ideogram|gpt4o|null>"} where ai_probability=overall 0=real 100=AI, technical_fingerprint=pixel artifacts/unnatural frequency patterns/geometric perfection 0-100, visual_style=aesthetic AI patterns/lighting/texture/smoothness 0-100, generator=most likely AI source or null.' }
+            { type: 'text', text: 'Analyze this image for AI generation. Check three things: (1) TECHNICAL: pixel artifacts, noise inconsistency, GAN fingerprints, unnatural sharpness. (2) VISUAL: AI-typical lighting, over-smooth textures, uncanny aesthetics. (3) SEMANTIC: physically impossible or surreal content that cannot exist in reality — human body merged with objects, impossible anatomy, dreamlike logic, scenes that defy physics. High semantic_anomaly alone is strong evidence of AI generation. Reply ONLY with valid JSON: {"ai_probability":<0-100>,"technical_fingerprint":<0-100>,"visual_style":<0-100>,"semantic_anomaly":<0-100>,"generator":"<midjourney|dalle|stable_diffusion|flux|firefly|ideogram|gpt4o|null>"} where ai_probability=overall verdict, technical_fingerprint=pixel/frequency artifacts, visual_style=aesthetic AI patterns, semantic_anomaly=impossible/surreal content score (0=normal real-world scene 100=physically impossible), generator=likely tool or null.' }
           ]
         }]
       }),
@@ -158,14 +170,15 @@ async function getClaudeAnalysis(mediaBuffer, mediaType, imgUrl) {
 
     const data = await res.json();
     const text = data.content?.[0]?.text ?? '';
-    const parsed              = JSON.parse(text.match(/\{[\s\S]*\}/)?.[0] ?? '{}');
-    const clamp               = (v, fb) => Math.min(100, Math.max(0, parseInt(v) || fb));
-    const ai_probability      = clamp(parsed.ai_probability, 50);
+    const parsed               = JSON.parse(text.match(/\{[\s\S]*\}/)?.[0] ?? '{}');
+    const clamp                = (v, fb) => Math.min(100, Math.max(0, parseInt(v) || fb));
+    const ai_probability       = clamp(parsed.ai_probability, 50);
     const technical_fingerprint = clamp(parsed.technical_fingerprint, ai_probability);
-    const visual_style        = clamp(parsed.visual_style, ai_probability);
-    const allowed             = ['midjourney','dalle','stable_diffusion','flux','firefly','ideogram','gpt4o'];
-    const generator           = allowed.includes(parsed.generator) ? parsed.generator : null;
-    return { ai_probability, technical_fingerprint, visual_style, generator };
+    const visual_style         = clamp(parsed.visual_style, ai_probability);
+    const semantic_anomaly     = clamp(parsed.semantic_anomaly, 0);
+    const allowed              = ['midjourney','dalle','stable_diffusion','flux','firefly','ideogram','gpt4o'];
+    const generator            = allowed.includes(parsed.generator) ? parsed.generator : null;
+    return { ai_probability, technical_fingerprint, visual_style, semantic_anomaly, generator };
   } catch (_) {
     clearTimeout(timer);
     return { ai_probability: 50, generator: null };

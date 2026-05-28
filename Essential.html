@@ -1122,6 +1122,7 @@
     let pendingScanScore = null;
     let pendingTechnical      = null;
     let pendingVisual         = null;
+    let pendingSemantic       = null;
     let pendingGenerator      = null;
     let pendingMetadata       = null;
 
@@ -1299,7 +1300,7 @@
         const res = await fetch('/api/scan', { method: 'POST', body: form, signal: _sc.signal });
         clearTimeout(_st);
         if (!res.ok) throw new Error('API error');
-        const { type, score, technical, visual, generator } = await res.json();
+        const { type, score, technical, visual, semantic, generator } = await res.json();
 
         stopScanStages();
         if (snap.can) {
@@ -1308,6 +1309,7 @@
           pendingScanScore      = score;
           pendingTechnical      = technical  ?? null;
           pendingVisual         = visual     ?? null;
+          pendingSemantic       = semantic   ?? null;
           pendingGenerator      = generator  ?? null;
           setState('RESULT_' + type.toUpperCase());
           if (userAtScanStart) saveQuota(userAtScanStart.id);
@@ -1564,11 +1566,16 @@
       return `<p style="font-size:11px; color:var(--text-muted); margin-top:8px;">Likely source: <span style="color:var(--text-secondary); font-weight:500;">${name}</span></p>`;
     }
 
-    function breakdownHtml(technical, visual, type, color) {
-      if (technical === null && visual === null) return '';
+    function breakdownHtml(technical, visual, semantic, type, color) {
+      if (technical === null && visual === null && semantic === null) return '';
 
       let callout = '';
-      if (technical !== null && visual !== null) {
+      const highSemantic = semantic !== null && semantic >= 80;
+      if (highSemantic && (type === 'ai' || type === 'suspicious')) {
+        callout = 'Impossible or surreal content detected — the scene couldn\'t exist in reality.';
+      } else if (highSemantic && type === 'human') {
+        callout = 'Scene content appears impossible — result may be unreliable.';
+      } else if (technical !== null && visual !== null) {
         if (type === 'ai' && technical <= 10 && visual >= 70) {
           callout = 'Technical fingerprinting found nothing — visual analysis flagged the AI patterns.';
         } else if ((type === 'ai' || type === 'suspicious') && visual < 40) {
@@ -1588,7 +1595,7 @@
         ? `<p style="font-size:11px; color:var(--text-muted); font-style:italic; margin-bottom:8px; line-height:1.5;">${callout}</p>`
         : '';
 
-      // Technical row — bar, "Not detected" stub (score=0), or "N/A" (file upload, Sightengine skipped)
+      // Technical row
       const techRow = technical === null ? `
         <div class="signal-row">
           <span class="signal-name">Technical analysis</span>
@@ -1612,8 +1619,7 @@
           </div>
         </div>`;
 
-      // Visual row — matches verdict color when both sources agree; teal only when diverging
-      // (teal contrast is the visual signal for disagreement, not a permanent color)
+      // Visual row
       let visualRow = '';
       if (visual !== null && visual !== undefined) {
         const visualFill  = Math.max(visual / 100, 0.05).toFixed(3);
@@ -1629,7 +1635,23 @@
           </div>`;
       }
 
-      return calloutHtml + techRow + visualRow;
+      // Content analysis row — semantic anomaly signal
+      let semanticRow = '';
+      if (semantic !== null && semantic !== undefined) {
+        const semanticFill  = Math.max(semantic / 100, 0.05).toFixed(3);
+        const semanticAgree = (type === 'ai' && semantic > 50) || (type === 'human' && semantic <= 50);
+        const semanticColor = semanticAgree ? color : '#5ba39e';
+        semanticRow = `
+          <div class="signal-row">
+            <span class="signal-name">Content analysis</span>
+            <span class="signal-pct">${semantic}%</span>
+            <div class="signal-track">
+              <div class="signal-fill signal-bar-fill" style="background:${semanticColor}; --fill:${semanticFill}; animation-delay:160ms;"></div>
+            </div>
+          </div>`;
+      }
+
+      return calloutHtml + techRow + visualRow + semanticRow;
     }
 
     let lastResultType = null;
@@ -1648,7 +1670,7 @@
           <p style="font-size:14px; font-weight:600; color:${c.color};">${c.label}</p>
           <p style="font-size:13px; color:var(--text-secondary); margin-top:4px; line-height:1.5;">${c.sub}</p>
           ${generatorBadgeHtml(pendingGenerator, type)}
-          ${pendingTechnical !== null ? `<div style="margin-top:14px; padding-top:14px; border-top:1px solid ${c.border};">${breakdownHtml(pendingTechnical, pendingVisual, type, c.color)}</div>` : ''}
+          ${(pendingTechnical !== null || pendingVisual !== null || pendingSemantic !== null) ? `<div style="margin-top:14px; padding-top:14px; border-top:1px solid ${c.border};">${breakdownHtml(pendingTechnical, pendingVisual, pendingSemantic, type, c.color)}</div>` : ''}
           <div style="margin-top:14px; padding-top:14px; border-top:1px solid ${c.border};">
             <p style="font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.12em; margin-bottom:4px;">Metadata</p>
             ${metadataHtml(pendingMetadata)}
@@ -1706,13 +1728,14 @@
 
       // Two-row signal breakdown — show if either signal has data
       if (pendingTechnical !== null || pendingVisual !== null) {
-        panelSignalsList.innerHTML = breakdownHtml(pendingTechnical, pendingVisual, type, p.color);
+        panelSignalsList.innerHTML = breakdownHtml(pendingTechnical, pendingVisual, pendingSemantic, type, p.color);
         show(panelSignals);
       } else {
         hide(panelSignals);
       }
       pendingTechnical = null;
       pendingVisual    = null;
+      pendingSemantic  = null;
 
       // Metadata
       const panelMeta        = document.getElementById('panel-metadata');
