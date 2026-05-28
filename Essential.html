@@ -1076,10 +1076,11 @@
     let selectedFile = null;
     let scanTimer = null;
     let pendingScanScore = null;
-    let pendingTechnical  = null;
-    let pendingVisual     = null;
-    let pendingGenerator  = null;
-    let pendingMetadata   = null;
+    let pendingTechnical      = null;
+    let pendingVisual         = null;
+    let pendingGenerator      = null;
+    let pendingMetadata       = null;
+    let pendingVisualLocation = null;
 
     // ── DOM refs ───────────────────────────
     const uploadZone       = document.getElementById('upload-zone');
@@ -1158,7 +1159,7 @@
       } catch (_) { return null; }
     }
 
-    function metadataHtml(meta) {
+    function metadataHtml(meta, visualLocation) {
       const rows = [];
       if (meta) {
         const cam = [meta.Make, meta.Model].filter(Boolean).join(' ');
@@ -1171,12 +1172,15 @@
           } catch (_) {}
         }
         if (meta.GPSLatitude != null) rows.push(['Location', meta._location || 'GPS present']);
+        else if (visualLocation)      rows.push(['Est. location', visualLocation]);
         const exp = [
           meta.FNumber     ? `f/${meta.FNumber}`           : null,
           meta.FocalLength ? `${meta.FocalLength}mm`       : null,
           meta.ISO         ? `ISO ${meta.ISO}`        : null,
         ].filter(Boolean);
         if (exp.length) rows.push(['Exposure', exp.join(' · ')]);
+      } else if (visualLocation) {
+        rows.push(['Est. location', visualLocation]);
       }
 
       if (!rows.length) {
@@ -1245,16 +1249,17 @@
 
         const res = await fetch('/api/scan', { method: 'POST', body: form });
         if (!res.ok) throw new Error('API error');
-        const { type, score, technical, visual, generator } = await res.json();
+        const { type, score, technical, visual, generator, location } = await res.json();
 
         stopScanStages();
         if (snap.can) {
           deductQuota(snap);
           updateProgressBar();
-          pendingScanScore  = score;
-          pendingTechnical  = technical  ?? null;
-          pendingVisual     = visual     ?? null;
-          pendingGenerator  = generator  ?? null;
+          pendingScanScore      = score;
+          pendingTechnical      = technical  ?? null;
+          pendingVisual         = visual     ?? null;
+          pendingGenerator      = generator  ?? null;
+          pendingVisualLocation = location   ?? null;
           setState('RESULT_' + type.toUpperCase());
           if (userAtScanStart) saveQuota(userAtScanStart.id);
           else saveAnonQuota();
@@ -1588,7 +1593,7 @@
           ${pendingTechnical !== null ? `<div style="margin-top:14px; padding-top:14px; border-top:1px solid ${c.border};">${breakdownHtml(pendingTechnical, pendingVisual, type, c.color)}</div>` : ''}
           <div style="margin-top:14px; padding-top:14px; border-top:1px solid ${c.border};">
             <p style="font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.12em; margin-bottom:4px;">Metadata</p>
-            ${metadataHtml(pendingMetadata)}
+            ${metadataHtml(pendingMetadata, pendingVisualLocation)}
           </div>
           <div style="display:flex; gap:8px; margin-top:14px;">
             <button class="icon-btn" onclick="copyResult()" style="flex:1; justify-content:center; height:36px;">
@@ -1655,10 +1660,11 @@
       const panelMeta        = document.getElementById('panel-metadata');
       const panelMetaContent = document.getElementById('panel-metadata-content');
       if (panelMeta && panelMetaContent) {
-        panelMetaContent.innerHTML = metadataHtml(pendingMetadata);
+        panelMetaContent.innerHTML = metadataHtml(pendingMetadata, pendingVisualLocation);
         show(panelMeta);
       }
-      pendingMetadata = null;
+      pendingMetadata       = null;
+      pendingVisualLocation = null;
 
       show(panelCopy);
       show(document.getElementById('panel-deletion-notice'));
