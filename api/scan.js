@@ -63,10 +63,10 @@ export default async function handler(req) {
       }
     }
   } else if (claudeResult) {
-    finalScore = claudeResult.ai_probability / 100;
     technical  = claudeResult.technical_fingerprint;
     visual     = claudeResult.visual_style;
     generator  = claudeResult.generator;
+    finalScore = (technical + visual) / 200;
   } else {
     return json({ error: 'Analysis failed' }, 502);
   }
