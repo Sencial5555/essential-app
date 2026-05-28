@@ -1080,8 +1080,6 @@
     let pendingVisual         = null;
     let pendingGenerator      = null;
     let pendingMetadata       = null;
-    let pendingVisualLocation           = null;
-    let pendingVisualLocationConfidence = null;
 
     // ── DOM refs ───────────────────────────
     const uploadZone       = document.getElementById('upload-zone');
@@ -1144,33 +1142,11 @@
       try {
         const { parse } = await import('https://cdn.jsdelivr.net/npm/exifr@7/dist/full.esm.js');
         const meta = await parse(file, true) || null;
-        if (meta && meta.GPSLatitude != null && meta.GPSLongitude != null) {
-          try {
-            const _nc = new AbortController();
-            const _nt = setTimeout(() => _nc.abort(), 5000);
-            const r = await fetch(
-              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${meta.GPSLatitude}&lon=${meta.GPSLongitude}`,
-              { signal: _nc.signal }
-            );
-            clearTimeout(_nt);
-            const geo = await r.json();
-            const a = geo.address || {};
-            const city    = a.city || a.town || a.village || a.municipality || a.county || '';
-            const country = a.country || '';
-            meta._location = [city, country].filter(Boolean).join(', ') || null;
-          } catch (_) {}
-        }
         return meta;
       } catch (_) { return null; }
     }
 
-    function locationLink(name, confidence) {
-      const url  = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name)}`;
-      const conf = confidence ? ` <span style="font-size:10px; font-weight:400; opacity:0.55;">· ${confidence.charAt(0).toUpperCase() + confidence.slice(1)}</span>` : '';
-      return `<a href="${url}" target="_blank" rel="noopener" style="color:inherit; text-decoration:underline; text-decoration-style:dotted;">${name}</a>${conf}`;
-    }
-
-    function metadataHtml(meta, visualLocation, visualLocationConfidence) {
+    function metadataHtml(meta) {
       const rows = [];
       if (meta) {
         const cam = [meta.Make, meta.Model].filter(Boolean).join(' ');
@@ -1182,16 +1158,13 @@
             if (!isNaN(d)) rows.push(['Captured', d.toLocaleDateString(undefined, { year:'numeric', month:'short', day:'numeric' })]);
           } catch (_) {}
         }
-        if (meta.GPSLatitude != null) rows.push(['Location', meta._location ? locationLink(meta._location) : 'GPS present']);
-        else if (visualLocation)      rows.push(['Est. location', locationLink(visualLocation, visualLocationConfidence)]);
+        if (meta.GPSLatitude != null) rows.push(['Location', 'GPS present']);
         const exp = [
           meta.FNumber     ? `f/${meta.FNumber}`           : null,
           meta.FocalLength ? `${meta.FocalLength}mm`       : null,
           meta.ISO         ? `ISO ${meta.ISO}`        : null,
         ].filter(Boolean);
         if (exp.length) rows.push(['Exposure', exp.join(' · ')]);
-      } else if (visualLocation) {
-        rows.push(['Est. location', locationLink(visualLocation, visualLocationConfidence)]);
       }
 
       if (!rows.length) {
@@ -1263,7 +1236,7 @@
         const res = await fetch('/api/scan', { method: 'POST', body: form, signal: _sc.signal });
         clearTimeout(_st);
         if (!res.ok) throw new Error('API error');
-        const { type, score, technical, visual, generator, location, location_confidence } = await res.json();
+        const { type, score, technical, visual, generator } = await res.json();
 
         stopScanStages();
         if (snap.can) {
@@ -1273,8 +1246,6 @@
           pendingTechnical      = technical  ?? null;
           pendingVisual         = visual     ?? null;
           pendingGenerator      = generator  ?? null;
-          pendingVisualLocation           = location            ?? null;
-          pendingVisualLocationConfidence = location_confidence ?? null;
           setState('RESULT_' + type.toUpperCase());
           if (userAtScanStart) saveQuota(userAtScanStart.id);
           else saveAnonQuota();
@@ -1610,7 +1581,7 @@
           ${pendingTechnical !== null ? `<div style="margin-top:14px; padding-top:14px; border-top:1px solid ${c.border};">${breakdownHtml(pendingTechnical, pendingVisual, type, c.color)}</div>` : ''}
           <div style="margin-top:14px; padding-top:14px; border-top:1px solid ${c.border};">
             <p style="font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.12em; margin-bottom:4px;">Metadata</p>
-            ${metadataHtml(pendingMetadata, pendingVisualLocation, pendingVisualLocationConfidence)}
+            ${metadataHtml(pendingMetadata)}
           </div>
           <div style="display:flex; gap:8px; margin-top:14px;">
             <button class="icon-btn" onclick="copyResult()" style="flex:1; justify-content:center; height:36px;">
@@ -1677,12 +1648,10 @@
       const panelMeta        = document.getElementById('panel-metadata');
       const panelMetaContent = document.getElementById('panel-metadata-content');
       if (panelMeta && panelMetaContent) {
-        panelMetaContent.innerHTML = metadataHtml(pendingMetadata, pendingVisualLocation, pendingVisualLocationConfidence);
+        panelMetaContent.innerHTML = metadataHtml(pendingMetadata);
         show(panelMeta);
       }
       pendingMetadata                 = null;
-      pendingVisualLocation           = null;
-      pendingVisualLocationConfidence = null;
 
       show(panelCopy);
       show(document.getElementById('panel-deletion-notice'));
