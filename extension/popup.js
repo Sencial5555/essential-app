@@ -166,12 +166,12 @@ function signalsHtml(technical, visual, type, verdictColor) {
 
   const rows = [];
 
-  if (technical !== null) {
-    if (technical <= 8) {
-      rows.push(rowHtml('Technical analysis', null, 'Not detected', 'rgba(255,255,255,0.2)'));
-    } else {
-      rows.push(rowHtml('Technical analysis', technical / 100, `${technical}%`, verdictColor));
-    }
+  if (technical === null) {
+    rows.push(rowHtml('Technical analysis', null, 'N/A', 'rgba(255,255,255,0.2)'));
+  } else if (technical <= 8) {
+    rows.push(rowHtml('Technical analysis', null, 'Not detected', 'rgba(255,255,255,0.2)'));
+  } else {
+    rows.push(rowHtml('Technical analysis', technical / 100, `${technical}%`, verdictColor));
   }
 
   if (visual !== null) {
