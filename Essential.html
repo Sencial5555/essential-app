@@ -1570,11 +1570,11 @@
       if (technical === null && visual === null && semantic === null) return '';
 
       let callout = '';
-      const highSemantic = semantic !== null && semantic >= 85;
+      const highSemantic = semantic !== null && semantic >= 80;
       if (highSemantic && (type === 'ai' || type === 'suspicious')) {
-        callout = 'Strong AI content signatures detected — impossible scene or AI design patterns identified.';
+        callout = 'Impossible or surreal content detected — the scene couldn\'t exist in reality.';
       } else if (highSemantic && type === 'human') {
-        callout = 'AI design patterns detected — result may be unreliable.';
+        callout = 'Scene content appears impossible — result may be unreliable.';
       } else if (technical !== null && visual !== null) {
         if (type === 'ai' && technical <= 10 && visual >= 70) {
           callout = 'Technical fingerprinting found nothing — visual analysis flagged the AI patterns.';
