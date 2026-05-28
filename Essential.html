@@ -869,6 +869,7 @@
           <p style="font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.12em; margin-bottom:6px;">Signal Breakdown</p>
           <div id="panel-signals-list"><!-- populated by JS --></div>
         </div>
+        <p id="panel-deletion-notice" class="hidden" style="font-size:11px; color:var(--text-muted); text-align:center; margin-top:12px;">Image deleted after analysis — never stored.</p>
       </div>
 
       <!-- ── Auth card ── -->
@@ -1517,6 +1518,7 @@
               New scan
             </button>
           </div>
+          <p style="font-size:11px; color:var(--text-muted); text-align:center; margin-top:10px;">Image deleted after analysis — never stored.</p>
         </div>
       `;
       const ms = document.getElementById('mobile-result-score');
@@ -1565,6 +1567,7 @@
       pendingTechnical = null;
       pendingVisual    = null;
       show(panelCopy);
+      show(document.getElementById('panel-deletion-notice'));
 
       // Thumbnail
       const srcThumb = document.getElementById('thumb');
@@ -1597,6 +1600,7 @@
       panelThumb.removeAttribute('src');
       hide(panelSignals);
       hide(panelCopy);
+      hide(document.getElementById('panel-deletion-notice'));
     }
 
     // ── Auth tab switching ──────────────────
