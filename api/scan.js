@@ -45,7 +45,12 @@ export default async function handler(req) {
     const claudeResult = await getClaudeAnalysis(mediaBuffer, mediaType, imgUrl);
     visual = claudeResult.ai_probability;
     if (sgScore <= 0.10) {
-      finalScore = (sgScore + claudeResult.ai_probability / 100) / 2;
+      if (claudeResult.ai_probability >= 70) {
+        // Claude strongly disagrees with Sightengine — trust it (slight discount for single-source)
+        finalScore = claudeResult.ai_probability / 100 * 0.9;
+      } else {
+        finalScore = (sgScore + claudeResult.ai_probability / 100) / 2;
+      }
     }
   } catch (_) {}
 
