@@ -1141,7 +1141,20 @@
     async function parseMetadata(file) {
       try {
         const { parse } = await import('https://cdn.jsdelivr.net/npm/exifr@7/dist/full.esm.js');
-        return await parse(file, true) || null;
+        const meta = await parse(file, true) || null;
+        if (meta && meta.GPSLatitude != null && meta.GPSLongitude != null) {
+          try {
+            const r = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${meta.GPSLatitude}&lon=${meta.GPSLongitude}`
+            );
+            const geo = await r.json();
+            const a = geo.address || {};
+            const city    = a.city || a.town || a.village || a.municipality || a.county || '';
+            const country = a.country || '';
+            meta._location = [city, country].filter(Boolean).join(', ') || null;
+          } catch (_) {}
+        }
+        return meta;
       } catch (_) { return null; }
     }
 
@@ -1157,7 +1170,7 @@
             if (!isNaN(d)) rows.push(['Captured', d.toLocaleDateString(undefined, { year:'numeric', month:'short', day:'numeric' })]);
           } catch (_) {}
         }
-        if (meta.GPSLatitude != null) rows.push(['GPS', 'Present']);
+        if (meta.GPSLatitude != null) rows.push(['Location', meta._location || 'GPS present']);
         const exp = [
           meta.FNumber     ? `f/${meta.FNumber}`           : null,
           meta.FocalLength ? `${meta.FocalLength}mm`       : null,
