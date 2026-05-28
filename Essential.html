@@ -1428,7 +1428,9 @@
 
       let callout = '';
       if (technical !== null && visual !== null) {
-        if ((type === 'ai' || type === 'suspicious') && visual < 40) {
+        if (type === 'ai' && technical <= 10 && visual >= 70) {
+          callout = 'Technical fingerprinting found nothing — visual analysis flagged the AI patterns.';
+        } else if ((type === 'ai' || type === 'suspicious') && visual < 40) {
           callout = 'This image fools the eye but not the algorithm — a strong indicator of AI generation.';
         } else if (type === 'ai' && visual >= 70) {
           callout = 'Both technical and visual analysis confirm AI generation.';
@@ -1460,7 +1462,7 @@
       let visualRow = '';
       if (visual !== null && visual !== undefined) {
         const visualFill  = Math.max(visual / 100, 0.05).toFixed(3);
-        const agreeing    = (technical > 50 && visual > 50) || (technical <= 50 && visual <= 50);
+        const agreeing    = (type === 'ai' && visual > 50) || (type === 'human' && visual <= 50) || (type === 'suspicious');
         const visualColor = agreeing ? color : '#5ba39e';
         visualRow = `
           <div class="signal-row">
