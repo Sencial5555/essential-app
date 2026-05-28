@@ -39,26 +39,33 @@ export default async function handler(req) {
     getClaudeAnalysis(mediaBuffer, mediaType, imgUrl).catch(() => null),
   ]);
 
-  if (sgData.status === 'failure') {
-    return json({ error: sgData.error?.message || 'Sightengine error' }, 502);
-  }
+  const sgOk    = sgData.status !== 'failure';
+  const sgScore = sgOk ? (sgData.type?.ai_generated ?? 0) : null;
 
-  const sgScore = sgData.type?.ai_generated ?? 0;
+  let visual    = null;
+  let generator = null;
 
-  let finalScore = sgScore;
-  let visual     = null;
-  let generator  = null;
-
-  if (claudeResult) {
-    visual    = claudeResult.ai_probability;
-    generator = claudeResult.generator;
-    if (sgScore <= 0.10) {
-      if (claudeResult.ai_probability >= 70) {
-        finalScore = claudeResult.ai_probability / 100 * 0.9;
-      } else {
-        finalScore = (sgScore + claudeResult.ai_probability / 100) / 2;
+  // If Sightengine failed (e.g. binary upload not supported), Claude is the sole signal
+  let finalScore;
+  if (sgOk) {
+    finalScore = sgScore;
+    if (claudeResult) {
+      visual    = claudeResult.ai_probability;
+      generator = claudeResult.generator;
+      if (sgScore <= 0.10) {
+        if (claudeResult.ai_probability >= 70) {
+          finalScore = claudeResult.ai_probability / 100 * 0.9;
+        } else {
+          finalScore = (sgScore + claudeResult.ai_probability / 100) / 2;
+        }
       }
     }
+  } else if (claudeResult) {
+    finalScore = claudeResult.ai_probability / 100;
+    visual     = claudeResult.ai_probability;
+    generator  = claudeResult.generator;
+  } else {
+    return json({ error: 'Analysis failed' }, 502);
   }
 
   let type;
@@ -79,7 +86,7 @@ export default async function handler(req) {
     type,
     score:        displayScore,
     ai_generated: finalScore,
-    technical:    Math.round(sgScore * 100),
+    technical:    sgOk ? Math.round(sgScore * 100) : null,
     visual,
     generator,
   });
