@@ -2066,48 +2066,63 @@
       }
     }
 
-    async function saveHistoryToCloud(arr) {
+    async function saveHistoryToCloud(localArr) {
       if (!currentUser) return;
       try {
         const raw   = localStorage.getItem('sb-tjzjwyjggmrcmwawrtpm-auth-token');
         const token = raw ? JSON.parse(raw)?.access_token : null;
         if (!token) return;
-        // Strip base64 image data — only metadata goes to cloud
-        const slim = arr.map(({ thumb, full, ...rest }) => rest);
-        await fetch(
-          `https://tjzjwyjggmrcmwawrtpm.supabase.co/rest/v1/scan_quota?user_id=eq.${currentUser.id}`,
-          {
-            method: 'PATCH',
-            headers: {
-              'Content-Type': 'application/json',
-              'apikey': 'sb_publishable_E0cyz5LQVlBvKsg9lzDkrg_XtTVdfEH',
-              'Authorization': `Bearer ${token}`,
-              'Prefer': 'return=minimal',
-            },
-            body: JSON.stringify({ scan_history: slim }),
-          }
-        );
+        const base = 'https://tjzjwyjggmrcmwawrtpm.supabase.co/rest/v1';
+        const h = {
+          'Content-Type': 'application/json',
+          'apikey':        'sb_publishable_E0cyz5LQVlBvKsg9lzDkrg_XtTVdfEH',
+          'Authorization': `Bearer ${token}`,
+        };
+        // Read current cloud history so this device never wipes another device's entries
+        let cloudArr = [];
+        try {
+          const rows = await (await fetch(
+            `${base}/scan_quota?user_id=eq.${currentUser.id}&select=scan_history`,
+            { headers: h }
+          )).json();
+          if (Array.isArray(rows?.[0]?.scan_history)) cloudArr = rows[0].scan_history;
+        } catch (_) {}
+        // Strip image blobs from local, then union with cloud (keyed by at timestamp)
+        const slim = localArr.filter(e => e?.at != null).map(({ thumb, full, ...rest }) => rest);
+        const byAt = new Map();
+        [...cloudArr, ...slim].forEach(e => { if (e?.at != null) byAt.set(Number(e.at), e); });
+        const merged = [...byAt.values()].sort((a, b) => Number(b.at) - Number(a.at)).slice(0, 20);
+        await fetch(`${base}/scan_quota?user_id=eq.${currentUser.id}`, {
+          method: 'PATCH',
+          headers: { ...h, 'Prefer': 'return=minimal' },
+          body: JSON.stringify({ scan_history: merged }),
+        });
       } catch (_) {}
     }
 
     function mergeHistory(cloudArr) {
       if (!Array.isArray(cloudArr)) return;
-      const local     = loadHistory();
-      const localByAt = new Map(local.map(e => [e.at, e]));
-      const cloudByAt = new Map(cloudArr.map(e => [e.at, e]));
+      // Guard against null entries; normalise at to number for reliable Map keying
+      const local     = loadHistory().filter(e => e?.at != null);
+      const localByAt = new Map(local.map(e => [Number(e.at), e]));
+      const cloud     = cloudArr.filter(e => e?.at != null);
+      const cloudByAt = new Map(cloud.map(e => [Number(e.at), e]));
 
-      // Union of both — prefer local entry (has thumbnail) over cloud entry (slim)
+      // Nothing new from cloud — no display update needed
+      const hadCloudOnly = cloud.some(e => !localByAt.has(Number(e.at)));
+      if (!hadCloudOnly) return;
+
+      // Rebuild local history as union, preferring local entry (has thumbnail)
       const allAts = new Set([...localByAt.keys(), ...cloudByAt.keys()]);
       const merged = [...allAts]
         .map(at => localByAt.get(at) || cloudByAt.get(at))
-        .sort((a, b) => b.at - a.at)
+        .filter(Boolean)
+        .sort((a, b) => Number(b.at) - Number(a.at))
         .slice(0, 20);
 
-      const hadCloudOnly = cloudArr.some(e => !localByAt.has(e.at));
-      const hadLocalOnly = local.some(e => !cloudByAt.has(e.at));
-
-      if (hadCloudOnly) { saveHistory(merged); renderHistory(); }
-      if (hadLocalOnly) { saveHistoryToCloud(merged); }
+      saveHistory(merged);
+      renderHistory();
+      // No saveHistoryToCloud here — cloud already holds merged data (read-merge-write)
     }
 
     let _realtimeChannel = null;
@@ -2312,6 +2327,8 @@
         scansRemaining = isNaN(cached) ? 10 : cached;
         loadQuota(session.user.id);
         subscribeRealtime(session.user.id);
+        // Push any local-only history entries to cloud on every page load
+        saveHistoryToCloud(loadHistory());
       }
     });
 
@@ -2336,6 +2353,7 @@ sb.auth.onAuthStateChange(async (event, session) => {
           scansRemaining = isNaN(cached) ? 10 : cached;
           await loadQuota(session.user.id);
           subscribeRealtime(session.user.id);
+          saveHistoryToCloud(loadHistory());
         }
       } else {
         // Ignore transient null events if a valid token still exists in localStorage
