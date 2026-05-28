@@ -2215,6 +2215,11 @@
       }
     });
 
+    // Refresh quota when the browser extension does a scan in another tab
+    window.addEventListener('essential:quota-changed', () => {
+      if (currentUser) loadQuota(currentUser.id);
+    });
+
     sb.auth.onAuthStateChange(async (event, session) => {
       if (session) {
         updateAuthUI(session.user);

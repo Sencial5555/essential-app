@@ -152,6 +152,7 @@ async function scan(url) {
     const data = await res.json();
     if (data.error) throw new Error(data.error);
     showResult(data, url);
+    notifyWebsite();
   } catch (e) {
     showError(e.message || 'Something went wrong. Try uploading on essentialai-app.com.');
   }
@@ -196,6 +197,15 @@ function rowHtml(name, fill, label, color) {
       <span class="signal-pct" style="${pctStyle}">${label}</span>
     </div>
   `;
+}
+
+async function notifyWebsite() {
+  try {
+    const tabs = await chrome.tabs.query({ url: 'https://www.essentialai-app.com/*' });
+    for (const tab of tabs) {
+      chrome.tabs.sendMessage(tab.id, { type: 'quota-changed' }).catch(() => {});
+    }
+  } catch (_) {}
 }
 
 async function syncFromOpenTab() {
