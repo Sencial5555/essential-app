@@ -69,6 +69,7 @@ export default async function handler(req) {
     ai_generated: finalScore,
     technical:   Math.round(sgScore * 100),
     visual,
+    generator:   claudeResult?.generator ?? null,
   });
 }
 
@@ -95,12 +96,12 @@ async function getClaudeAnalysis(mediaBuffer, mediaType, imgUrl) {
     },
     body: JSON.stringify({
       model:      'claude-haiku-4-5-20251001',
-      max_tokens: 64,
+      max_tokens: 80,
       messages: [{
         role: 'user',
         content: [
           { type: 'image', source: imageSource },
-          { type: 'text', text: 'Is this image AI-generated or a real photograph? Reply ONLY with valid JSON, nothing else: {"ai_probability":<integer 0-100>} where 0 = definitely real photo, 100 = definitely AI-generated.' }
+          { type: 'text', text: 'Is this image AI-generated or a real photograph? Reply ONLY with valid JSON, nothing else: {"ai_probability":<integer 0-100>,"generator":"<midjourney|dalle|stable_diffusion|flux|firefly|ideogram|gpt4o|null>"} where ai_probability 0=real photo 100=AI-generated, generator=most likely source or null if real/uncertain.' }
         ]
       }]
     })
@@ -108,9 +109,15 @@ async function getClaudeAnalysis(mediaBuffer, mediaType, imgUrl) {
 
   const data = await res.json();
   const text = data.content?.[0]?.text ?? '';
-  const match = text.match(/"ai_probability"\s*:\s*(\d+)/);
-  const ai_probability = match ? Math.min(100, Math.max(0, parseInt(match[1]))) : 50;
-  return { ai_probability };
+  try {
+    const parsed      = JSON.parse(text.match(/\{[\s\S]*\}/)?.[0] ?? '{}');
+    const ai_probability = Math.min(100, Math.max(0, parseInt(parsed.ai_probability) || 50));
+    const allowed     = ['midjourney','dalle','stable_diffusion','flux','firefly','ideogram','gpt4o'];
+    const generator   = allowed.includes(parsed.generator) ? parsed.generator : null;
+    return { ai_probability, generator };
+  } catch (_) {
+    return { ai_probability: 50, generator: null };
+  }
 }
 
 function json(data, status = 200) {
