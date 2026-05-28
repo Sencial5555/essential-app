@@ -1146,9 +1146,13 @@
         const meta = await parse(file, true) || null;
         if (meta && meta.GPSLatitude != null && meta.GPSLongitude != null) {
           try {
+            const _nc = new AbortController();
+            const _nt = setTimeout(() => _nc.abort(), 5000);
             const r = await fetch(
-              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${meta.GPSLatitude}&lon=${meta.GPSLongitude}`
+              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${meta.GPSLatitude}&lon=${meta.GPSLongitude}`,
+              { signal: _nc.signal }
             );
+            clearTimeout(_nt);
             const geo = await r.json();
             const a = geo.address || {};
             const city    = a.city || a.town || a.village || a.municipality || a.county || '';
@@ -1254,7 +1258,10 @@
           return;
         }
 
-        const res = await fetch('/api/scan', { method: 'POST', body: form });
+        const _sc = new AbortController();
+        const _st = setTimeout(() => _sc.abort(), 30000);
+        const res = await fetch('/api/scan', { method: 'POST', body: form, signal: _sc.signal });
+        clearTimeout(_st);
         if (!res.ok) throw new Error('API error');
         const { type, score, technical, visual, generator, location, location_confidence } = await res.json();
 
@@ -2248,6 +2255,10 @@
       if (currentUser) loadQuota(currentUser.id);
     });
     window.addEventListener('essential:history-changed', renderHistory);
+
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden && currentUser) loadQuota(currentUser.id);
+    });
 
     sb.auth.onAuthStateChange(async (event, session) => {
       if (session) {
