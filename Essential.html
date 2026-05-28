@@ -2091,14 +2091,23 @@
     }
 
     function mergeHistory(cloudArr) {
-      if (!Array.isArray(cloudArr) || !cloudArr.length) return;
+      if (!Array.isArray(cloudArr)) return;
       const local     = loadHistory();
       const localByAt = new Map(local.map(e => [e.at, e]));
-      // Use local entry (has thumbnail) when we have it, else cloud entry
-      const merged = cloudArr.map(e => localByAt.get(e.at) || e);
-      merged.sort((a, b) => b.at - a.at);
-      saveHistory(merged.slice(0, 20));
-      renderHistory();
+      const cloudByAt = new Map(cloudArr.map(e => [e.at, e]));
+
+      // Union of both — prefer local entry (has thumbnail) over cloud entry (slim)
+      const allAts = new Set([...localByAt.keys(), ...cloudByAt.keys()]);
+      const merged = [...allAts]
+        .map(at => localByAt.get(at) || cloudByAt.get(at))
+        .sort((a, b) => b.at - a.at)
+        .slice(0, 20);
+
+      const hadCloudOnly = cloudArr.some(e => !localByAt.has(e.at));
+      const hadLocalOnly = local.some(e => !cloudByAt.has(e.at));
+
+      if (hadCloudOnly) { saveHistory(merged); renderHistory(); }
+      if (hadLocalOnly) { saveHistoryToCloud(merged); }
     }
 
     let _realtimeChannel = null;
