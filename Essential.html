@@ -869,6 +869,11 @@
           <p style="font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.12em; margin-bottom:6px;">Signal Breakdown</p>
           <div id="panel-signals-list"><!-- populated by JS --></div>
         </div>
+        <!-- Metadata — shown after real scan -->
+        <div id="panel-metadata" class="hidden" style="margin-top:16px; padding-top:14px; border-top:1px solid var(--border-subtle);">
+          <p style="font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.12em; margin-bottom:6px;">Metadata</p>
+          <div id="panel-metadata-content"></div>
+        </div>
         <p id="panel-deletion-notice" class="hidden" style="font-size:11px; color:var(--text-muted); text-align:center; margin-top:12px;">Image deleted after analysis — never stored.</p>
       </div>
 
@@ -1074,6 +1079,7 @@
     let pendingTechnical  = null;
     let pendingVisual     = null;
     let pendingGenerator  = null;
+    let pendingMetadata   = null;
 
     // ── DOM refs ───────────────────────────
     const uploadZone       = document.getElementById('upload-zone');
@@ -1132,8 +1138,48 @@
       if (item) { e.preventDefault(); loadFile(item.getAsFile()); }
     });
 
+    async function parseMetadata(file) {
+      try {
+        const { parse } = await import('https://cdn.jsdelivr.net/npm/exifr@7/dist/lite.esm.js');
+        return await parse(file, true) || null;
+      } catch (_) { return null; }
+    }
+
+    function metadataHtml(meta) {
+      const rows = [];
+      if (meta) {
+        const cam = [meta.Make, meta.Model].filter(Boolean).join(' ');
+        if (cam) rows.push(['Camera', cam]);
+        if (meta.Software) rows.push(['Software', String(meta.Software).trim()]);
+        if (meta.DateTimeOriginal) {
+          try {
+            const d = new Date(meta.DateTimeOriginal);
+            if (!isNaN(d)) rows.push(['Captured', d.toLocaleDateString(undefined, { year:'numeric', month:'short', day:'numeric' })]);
+          } catch (_) {}
+        }
+        if (meta.GPSLatitude != null) rows.push(['GPS', 'Present']);
+        const exp = [
+          meta.FNumber     ? `f/${meta.FNumber}`           : null,
+          meta.FocalLength ? `${meta.FocalLength}mm`       : null,
+          meta.ISO         ? `ISO ${meta.ISO}`        : null,
+        ].filter(Boolean);
+        if (exp.length) rows.push(['Exposure', exp.join(' · ')]);
+      }
+
+      if (!rows.length) {
+        return `<p style="font-size:11px; color:var(--text-muted); padding:2px 0;">No camera metadata detected.</p>`;
+      }
+      return rows.map(([label, val]) => `
+        <div style="display:flex; justify-content:space-between; align-items:baseline; padding:3px 0; gap:8px;">
+          <span style="font-size:11px; color:var(--text-muted); flex-shrink:0;">${label}</span>
+          <span style="font-size:11px; color:var(--text-secondary); font-weight:500; text-align:right; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:65%;">${val}</span>
+        </div>`).join('');
+    }
+
     function loadFile(file) {
       selectedFile = file;
+      pendingMetadata = null;
+      parseMetadata(file).then(m => { pendingMetadata = m; });
       thumb.style.cssText = '';
       const url = URL.createObjectURL(file);
       thumb.src = url;
@@ -1527,6 +1573,10 @@
           <p style="font-size:13px; color:var(--text-secondary); margin-top:4px; line-height:1.5;">${c.sub}</p>
           ${generatorBadgeHtml(pendingGenerator, type)}
           ${pendingTechnical !== null ? `<div style="margin-top:14px; padding-top:14px; border-top:1px solid ${c.border};">${breakdownHtml(pendingTechnical, pendingVisual, type, c.color)}</div>` : ''}
+          <div style="margin-top:14px; padding-top:14px; border-top:1px solid ${c.border};">
+            <p style="font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.12em; margin-bottom:4px;">Metadata</p>
+            ${metadataHtml(pendingMetadata)}
+          </div>
           <div style="display:flex; gap:8px; margin-top:14px;">
             <button class="icon-btn" onclick="copyResult()" style="flex:1; justify-content:center; height:36px;">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
@@ -1587,6 +1637,16 @@
       }
       pendingTechnical = null;
       pendingVisual    = null;
+
+      // Metadata
+      const panelMeta        = document.getElementById('panel-metadata');
+      const panelMetaContent = document.getElementById('panel-metadata-content');
+      if (panelMeta && panelMetaContent) {
+        panelMetaContent.innerHTML = metadataHtml(pendingMetadata);
+        show(panelMeta);
+      }
+      pendingMetadata = null;
+
       show(panelCopy);
       show(document.getElementById('panel-deletion-notice'));
 
@@ -1620,6 +1680,7 @@
       panelThumb.style.display = 'none';
       panelThumb.removeAttribute('src');
       hide(panelSignals);
+      hide(document.getElementById('panel-metadata'));
       hide(panelCopy);
       hide(document.getElementById('panel-deletion-notice'));
     }
