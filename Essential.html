@@ -1424,12 +1424,7 @@
     };
 
     function breakdownHtml(technical, visual, type, color) {
-      const rows = [
-        { label: 'Technical analysis', pct: technical, delay: 0   },
-        { label: 'Visual perception',  pct: visual,    delay: 80  },
-      ].filter(r => r.pct !== null && r.pct !== undefined);
-
-      if (!rows.length) return '';
+      if (technical === null && visual === null) return '';
 
       let callout = '';
       if (technical !== null && visual !== null) {
@@ -1450,14 +1445,42 @@
         ? `<p style="font-size:11px; color:var(--text-muted); font-style:italic; margin-bottom:8px; line-height:1.5;">${callout}</p>`
         : '';
 
-      return calloutHtml + rows.map(({ label, pct, delay }) => `
+      // Technical row — result color (represents Sightengine's verdict)
+      const techRow = technical !== null ? `
         <div class="signal-row">
-          <span class="signal-name">${label}</span>
-          <span class="signal-pct">${pct}%</span>
+          <span class="signal-name">Technical analysis</span>
+          <span class="signal-pct">${technical}%</span>
           <div class="signal-track">
-            <div class="signal-fill signal-bar-fill" style="background:${color}; --fill:${(pct/100).toFixed(3)}; animation-delay:${delay}ms;"></div>
+            <div class="signal-fill signal-bar-fill" style="background:${color}; --fill:${(technical/100).toFixed(3)};"></div>
           </div>
-        </div>`).join('');
+        </div>` : '';
+
+      // Visual row — always teal (Claude's independent assessment, not the verdict color)
+      // Very low values (≤8%) render as a stub + dash to avoid an invisible sliver
+      let visualRow = '';
+      if (visual !== null && visual !== undefined) {
+        if (visual <= 8) {
+          visualRow = `
+            <div class="signal-row">
+              <span class="signal-name">Visual perception</span>
+              <span class="signal-pct" style="color:var(--text-muted);">—</span>
+              <div class="signal-track">
+                <div style="width:8px; height:100%; border-radius:100px; background:var(--border-active);"></div>
+              </div>
+            </div>`;
+        } else {
+          visualRow = `
+            <div class="signal-row">
+              <span class="signal-name">Visual perception</span>
+              <span class="signal-pct">${visual}%</span>
+              <div class="signal-track">
+                <div class="signal-fill signal-bar-fill" style="background:#5ba39e; --fill:${(visual/100).toFixed(3)}; animation-delay:80ms;"></div>
+              </div>
+            </div>`;
+        }
+      }
+
+      return calloutHtml + techRow + visualRow;
     }
 
     let lastResultType = null;
