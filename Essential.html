@@ -1282,7 +1282,9 @@
           currentUser ? setState('PAYWALL') : setState('LOGIN_GATE');
         }
       } catch {
-        useDemoResult(snap);
+        stopScanStages();
+        setState('IMAGE_LOADED');
+        showToast('Scan failed — please try again.');
       }
     }
 
@@ -2259,6 +2261,9 @@
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden && currentUser) loadQuota(currentUser.id);
     });
+
+    // Poll every 30s so phone/other-device scans update the counter automatically
+    setInterval(() => { if (currentUser) loadQuota(currentUser.id); }, 30000);
 
     sb.auth.onAuthStateChange(async (event, session) => {
       if (session) {

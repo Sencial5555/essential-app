@@ -10,9 +10,12 @@ export default async function handler(req) {
 
   const authToken = (req.headers.get('Authorization') || '').replace('Bearer ', '').trim();
   const userId    = (req.headers.get('X-User-Id') || '').trim();
+
+  let quotaData = null;
   if (authToken && userId) {
-    const allowed = await enforceQuota(authToken, userId);
-    if (!allowed) return json({ error: 'quota_exceeded' }, 402);
+    const check = await checkQuota(authToken, userId);
+    if (!check.allowed) return json({ error: 'quota_exceeded' }, 402);
+    quotaData = check.quotaData;
   }
 
   const incomingForm = await req.formData();
@@ -30,16 +33,11 @@ export default async function handler(req) {
     mediaType   = media.type || 'image/jpeg';
   }
 
-  const sgForm = new FormData();
-  sgForm.append('models', 'genai');
-  sgForm.append('api_user',   process.env.SIGHTENGINE_USER);
-  sgForm.append('api_secret', process.env.SIGHTENGINE_SECRET);
-
-  if (mediaBuffer) sgForm.append('media', new Blob([mediaBuffer], { type: mediaType }), 'image');
-  else             sgForm.append('url', imgUrl);
-
-  const sgRes  = await fetch('https://api.sightengine.com/1.0/check.json', { method: 'POST', body: sgForm });
-  const sgData = await sgRes.json();
+  // Run Sightengine and Claude in parallel — each with a 9s timeout
+  const [sgData, claudeResult] = await Promise.all([
+    runSightengine(mediaBuffer, mediaType, imgUrl),
+    getClaudeAnalysis(mediaBuffer, mediaType, imgUrl).catch(() => null),
+  ]);
 
   if (sgData.status === 'failure') {
     return json({ error: sgData.error?.message || 'Sightengine error' }, 502);
@@ -47,28 +45,25 @@ export default async function handler(req) {
 
   const sgScore = sgData.type?.ai_generated ?? 0;
 
-  // Always call Claude for visual assessment.
-  // Blend its score into the final only for borderline-human cases (Sightengine ≤10% AI).
   let finalScore          = sgScore;
   let visual              = null;
   let generator           = null;
   let location            = null;
   let location_confidence = null;
-  try {
-    const claudeResult = await getClaudeAnalysis(mediaBuffer, mediaType, imgUrl);
-    visual    = claudeResult.ai_probability;
-    generator = claudeResult.generator;
+
+  if (claudeResult) {
+    visual              = claudeResult.ai_probability;
+    generator           = claudeResult.generator;
     location            = claudeResult.location;
     location_confidence = claudeResult.location_confidence;
     if (sgScore <= 0.10) {
       if (claudeResult.ai_probability >= 70) {
-        // Claude strongly disagrees with Sightengine — trust it (slight discount for single-source)
         finalScore = claudeResult.ai_probability / 100 * 0.9;
       } else {
         finalScore = (sgScore + claudeResult.ai_probability / 100) / 2;
       }
     }
-  } catch (_) {}
+  }
 
   let type;
   if      (finalScore >= 0.70) type = 'ai';
@@ -79,16 +74,43 @@ export default async function handler(req) {
     ? Math.round((1 - finalScore) * 100)
     : Math.round(finalScore * 100);
 
+  // Deduct quota only after a successful result — no stolen points on timeout
+  if (authToken && userId) {
+    await deductQuotaRow(authToken, userId, quotaData);
+  }
+
   return json({
     type,
-    score:       displayScore,
+    score:        displayScore,
     ai_generated: finalScore,
-    technical:   Math.round(sgScore * 100),
+    technical:    Math.round(sgScore * 100),
     visual,
     generator,
-    location:             type !== 'ai' ? location            : null,
-    location_confidence:  type !== 'ai' ? location_confidence : null,
+    location:            type !== 'ai' ? location            : null,
+    location_confidence: type !== 'ai' ? location_confidence : null,
   });
+}
+
+async function runSightengine(mediaBuffer, mediaType, imgUrl) {
+  const sgForm = new FormData();
+  sgForm.append('models', 'genai');
+  sgForm.append('api_user',   process.env.SIGHTENGINE_USER);
+  sgForm.append('api_secret', process.env.SIGHTENGINE_SECRET);
+
+  if (mediaBuffer) sgForm.append('media', new Blob([mediaBuffer], { type: mediaType }), 'image');
+  else             sgForm.append('url', imgUrl);
+
+  const ctrl  = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 9000);
+  try {
+    const res  = await fetch('https://api.sightengine.com/1.0/check.json', { method: 'POST', body: sgForm, signal: ctrl.signal });
+    const data = await res.json();
+    clearTimeout(timer);
+    return data;
+  } catch (_) {
+    clearTimeout(timer);
+    return { status: 'failure', error: { message: 'Sightengine timeout' } };
+  }
 }
 
 async function getClaudeAnalysis(mediaBuffer, mediaType, imgUrl) {
@@ -105,44 +127,49 @@ async function getClaudeAnalysis(mediaBuffer, mediaType, imgUrl) {
     imageSource = { type: 'url', url: imgUrl };
   }
 
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'x-api-key':         process.env.ANTHROPIC_API_KEY,
-      'anthropic-version': '2023-06-01',
-      'content-type':      'application/json',
-    },
-    body: JSON.stringify({
-      model:      'claude-haiku-4-5-20251001',
-      max_tokens: 150,
-      messages: [{
-        role: 'user',
-        content: [
-          { type: 'image', source: imageSource },
-          { type: 'text', text: 'Is this image AI-generated or a real photograph? Reply ONLY with valid JSON, nothing else: {"ai_probability":<integer 0-100>,"generator":"<midjourney|dalle|stable_diffusion|flux|firefly|ideogram|gpt4o|null>","location":"<city and country if real photo and location identifiable, otherwise null>","location_confidence":"<high|medium|low|null>"} where ai_probability 0=real photo 100=AI-generated, generator=most likely AI source or null, location=null if AI-generated or unidentifiable, location_confidence=null if no location.' }
-        ]
-      }]
-    })
-  });
-
-  const data = await res.json();
-  const text = data.content?.[0]?.text ?? '';
+  const ctrl  = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 9000);
   try {
-    const parsed      = JSON.parse(text.match(/\{[\s\S]*\}/)?.[0] ?? '{}');
-    const ai_probability = Math.min(100, Math.max(0, parseInt(parsed.ai_probability) || 50));
-    const allowed     = ['midjourney','dalle','stable_diffusion','flux','firefly','ideogram','gpt4o'];
-    const generator   = allowed.includes(parsed.generator) ? parsed.generator : null;
-    const location     = (typeof parsed.location === 'string' && parsed.location.trim() && parsed.location !== 'null')
-                           ? parsed.location.trim() : null;
-    const confAllowed  = ['high', 'medium'];
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key':         process.env.ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01',
+        'content-type':      'application/json',
+      },
+      body: JSON.stringify({
+        model:      'claude-haiku-4-5-20251001',
+        max_tokens: 150,
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'image', source: imageSource },
+            { type: 'text', text: 'Is this image AI-generated or a real photograph? Reply ONLY with valid JSON, nothing else: {"ai_probability":<integer 0-100>,"generator":"<midjourney|dalle|stable_diffusion|flux|firefly|ideogram|gpt4o|null>","location":"<city and country if real photo and location identifiable, otherwise null>","location_confidence":"<high|medium|low|null>"} where ai_probability 0=real photo 100=AI-generated, generator=most likely AI source or null, location=null if AI-generated or unidentifiable, location_confidence=null if no location.' }
+          ]
+        }]
+      }),
+      signal: ctrl.signal,
+    });
+    clearTimeout(timer);
+
+    const data = await res.json();
+    const text = data.content?.[0]?.text ?? '';
+    const parsed          = JSON.parse(text.match(/\{[\s\S]*\}/)?.[0] ?? '{}');
+    const ai_probability  = Math.min(100, Math.max(0, parseInt(parsed.ai_probability) || 50));
+    const allowed         = ['midjourney','dalle','stable_diffusion','flux','firefly','ideogram','gpt4o'];
+    const generator       = allowed.includes(parsed.generator) ? parsed.generator : null;
+    const location        = (typeof parsed.location === 'string' && parsed.location.trim() && parsed.location !== 'null')
+                              ? parsed.location.trim() : null;
+    const confAllowed     = ['high', 'medium'];
     const location_confidence = confAllowed.includes(parsed.location_confidence) ? parsed.location_confidence : null;
     return { ai_probability, generator, location: location_confidence ? location : null, location_confidence };
   } catch (_) {
-    return { ai_probability: 50, generator: null };
+    clearTimeout(timer);
+    return { ai_probability: 50, generator: null, location: null, location_confidence: null };
   }
 }
 
-async function enforceQuota(token, userId) {
+async function checkQuota(token, userId) {
   const base = 'https://tjzjwyjggmrcmwawrtpm.supabase.co/rest/v1';
   const h = {
     'apikey':        'sb_publishable_E0cyz5LQVlBvKsg9lzDkrg_XtTVdfEH',
@@ -154,40 +181,63 @@ async function enforceQuota(token, userId) {
       `${base}/scan_quota?user_id=eq.${userId}&select=scans_remaining,credits_remaining,subscription_status,monthly_scans_used,reset_at`,
       { headers: h }
     )).json();
-    if (!Array.isArray(rows) || !rows.length) return false;
-    const d      = rows[0];
-    const now    = new Date();
-    const expired = d.reset_at && new Date(d.reset_at) < now;
+    if (!Array.isArray(rows) || !rows.length) return { allowed: false, quotaData: null };
+    const d         = rows[0];
+    const now       = new Date();
+    const expired   = d.reset_at && new Date(d.reset_at) < now;
     const subStatus = (d.subscription_status || '').trim().toLowerCase();
 
-    let patch;
     if (subStatus === 'active' || subStatus === 'trialing') {
-      if ((d.monthly_scans_used || 0) >= 5000) return false;
-      patch = { monthly_scans_used: (d.monthly_scans_used || 0) + 1 };
+      if ((d.monthly_scans_used || 0) >= 5000) return { allowed: false, quotaData: null };
+      return { allowed: true, quotaData: { ...d, _mode: 'subscription' } };
     } else if ((d.credits_remaining || 0) > 0) {
-      patch = { credits_remaining: d.credits_remaining - 1 };
+      return { allowed: true, quotaData: { ...d, _mode: 'credits' } };
     } else if (expired) {
-      const nextReset = new Date(now);
-      nextReset.setUTCDate(nextReset.getUTCDate() + 1);
-      nextReset.setUTCHours(0, 0, 0, 0);
-      patch = { scans_remaining: 9, reset_at: nextReset.toISOString() };
+      return { allowed: true, quotaData: { ...d, _mode: 'reset', _now: now.toISOString() } };
     } else if ((d.scans_remaining || 0) > 0) {
-      patch = { scans_remaining: d.scans_remaining - 1 };
+      return { allowed: true, quotaData: { ...d, _mode: 'free' } };
     } else {
-      return false;
+      return { allowed: false, quotaData: null };
     }
-
-    await fetch(`${base}/scan_quota?user_id=eq.${userId}`,
-      { method: 'PATCH', headers: { ...h, 'Prefer': 'return=minimal' }, body: JSON.stringify(patch) });
-    return true;
   } catch (_) {
-    return true; // fail open on DB/network errors
+    return { allowed: true, quotaData: null }; // fail open on DB/network errors
   }
+}
+
+async function deductQuotaRow(token, userId, quotaData) {
+  if (!quotaData) return;
+  const base = 'https://tjzjwyjggmrcmwawrtpm.supabase.co/rest/v1';
+  const h = {
+    'apikey':        'sb_publishable_E0cyz5LQVlBvKsg9lzDkrg_XtTVdfEH',
+    'Authorization': `Bearer ${token}`,
+    'Content-Type':  'application/json',
+    'Prefer':        'return=minimal',
+  };
+  const { _mode, _now, ...d } = quotaData;
+  let patch;
+  if (_mode === 'subscription') {
+    patch = { monthly_scans_used: (d.monthly_scans_used || 0) + 1 };
+  } else if (_mode === 'credits') {
+    patch = { credits_remaining: d.credits_remaining - 1 };
+  } else if (_mode === 'reset') {
+    const now = _now ? new Date(_now) : new Date();
+    const nextReset = new Date(now);
+    nextReset.setUTCDate(nextReset.getUTCDate() + 1);
+    nextReset.setUTCHours(0, 0, 0, 0);
+    patch = { scans_remaining: 9, reset_at: nextReset.toISOString() };
+  } else if (_mode === 'free') {
+    patch = { scans_remaining: d.scans_remaining - 1 };
+  }
+  if (!patch) return;
+  try {
+    await fetch(`${base}/scan_quota?user_id=eq.${userId}`,
+      { method: 'PATCH', headers: h, body: JSON.stringify(patch) });
+  } catch (_) {}
 }
 
 function corsHeaders() {
   return {
-    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Origin':  '*',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-User-Id',
   };

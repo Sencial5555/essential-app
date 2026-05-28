@@ -140,7 +140,10 @@ async function scan(url) {
     }
     const form = new FormData();
     form.append('url', url);
-    const res = await fetch(API, { method: 'POST', body: form, headers });
+    const ctrl  = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 30000);
+    const res = await fetch(API, { method: 'POST', body: form, headers, signal: ctrl.signal });
+    clearTimeout(timer);
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
       if (body.error === 'quota_exceeded') {
