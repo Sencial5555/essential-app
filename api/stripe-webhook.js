@@ -110,6 +110,8 @@ export default async function handler(req) {
       newStatus = 'canceling';
     } else if (sub.status === 'active') {
       newStatus = 'active';
+    } else if (sub.status === 'past_due' || sub.status === 'unpaid') {
+      newStatus = 'past_due'; // keep subscription_id — payment may recover on retry
     } else {
       newStatus = 'canceled';
       extra = { subscription_id: null };
