@@ -18,10 +18,15 @@ export default async function handler(req) {
     'Prefer':        'return=minimal',
   };
 
-  // Look up subscription_id using service role (server-side only)
+  // Look up subscription_id using the user's own token so RLS restricts
+  // the row to the authenticated user — prevents canceling another user's sub
   const sbRes = await fetch(
     `${SB_URL}/scan_quota?user_id=eq.${userId}&select=subscription_id,subscription_status`,
-    { headers: sbHeaders }
+    { headers: {
+        'apikey':        'sb_publishable_E0cyz5LQVlBvKsg9lzDkrg_XtTVdfEH',
+        'Authorization': `Bearer ${authToken}`,
+        'Content-Type':  'application/json',
+    }}
   );
   const rows = await sbRes.json();
   const row  = Array.isArray(rows) ? rows[0] : null;

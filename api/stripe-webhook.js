@@ -86,6 +86,19 @@ export default async function handler(req) {
     }
   }
 
+  if (event.type === 'invoice.payment_failed') {
+    const invoice = event.data.object;
+    const subId   = invoice.subscription;
+    if (subId) {
+      // Find the user by subscription_id and mark as past_due
+      const h = sbHeaders();
+      const r = await fetch(`${SB_URL}/scan_quota?subscription_id=eq.${subId}&select=user_id`, { headers: h });
+      const rows = await r.json();
+      const userId = rows[0]?.user_id;
+      if (userId) await patchQuota(userId, { subscription_status: 'past_due' });
+    }
+  }
+
   if (event.type === 'customer.subscription.updated' ||
       event.type === 'customer.subscription.deleted') {
     const sub    = event.data.object;
