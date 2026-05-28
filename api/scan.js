@@ -8,6 +8,13 @@ export default async function handler(req) {
     return json({ error: 'Method not allowed' }, 405);
   }
 
+  const authToken = (req.headers.get('Authorization') || '').replace('Bearer ', '').trim();
+  const userId    = (req.headers.get('X-User-Id') || '').trim();
+  if (authToken && userId) {
+    const allowed = await enforceQuota(authToken, userId);
+    if (!allowed) return json({ error: 'quota_exceeded' }, 402);
+  }
+
   const incomingForm = await req.formData();
   const media  = incomingForm.get('media');
   const imgUrl = incomingForm.get('url');
@@ -125,11 +132,53 @@ async function getClaudeAnalysis(mediaBuffer, mediaType, imgUrl) {
   }
 }
 
+async function enforceQuota(token, userId) {
+  const base = 'https://tjzjwyjggmrcmwawrtpm.supabase.co/rest/v1';
+  const h = {
+    'apikey':        'sb_publishable_E0cyz5LQVlBvKsg9lzDkrg_XtTVdfEH',
+    'Authorization': `Bearer ${token}`,
+    'Content-Type':  'application/json',
+  };
+  try {
+    const rows = await (await fetch(
+      `${base}/scan_quota?user_id=eq.${userId}&select=scans_remaining,credits_remaining,subscription_status,monthly_scans_used,reset_at`,
+      { headers: h }
+    )).json();
+    if (!Array.isArray(rows) || !rows.length) return false;
+    const d   = rows[0];
+    const now = new Date();
+    const expired = d.reset_at && new Date(d.reset_at) < now;
+
+    let patch;
+    if (d.subscription_status === 'active') {
+      if ((d.monthly_scans_used || 0) >= 5000) return false;
+      patch = { monthly_scans_used: (d.monthly_scans_used || 0) + 1 };
+    } else if ((d.credits_remaining || 0) > 0) {
+      patch = { credits_remaining: d.credits_remaining - 1 };
+    } else if (expired) {
+      const nextReset = new Date(now);
+      nextReset.setUTCDate(nextReset.getUTCDate() + 1);
+      nextReset.setUTCHours(0, 0, 0, 0);
+      patch = { scans_remaining: 9, reset_at: nextReset.toISOString() };
+    } else if ((d.scans_remaining || 0) > 0) {
+      patch = { scans_remaining: d.scans_remaining - 1 };
+    } else {
+      return false;
+    }
+
+    await fetch(`${base}/scan_quota?user_id=eq.${userId}`,
+      { method: 'PATCH', headers: { ...h, 'Prefer': 'return=minimal' }, body: JSON.stringify(patch) });
+    return true;
+  } catch (_) {
+    return true; // fail open on DB/network errors
+  }
+}
+
 function corsHeaders() {
   return {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-User-Id',
   };
 }
 

@@ -5,6 +5,11 @@
   "description": "Detect AI-generated images with one right-click.",
   "permissions": ["contextMenus", "storage"],
   "host_permissions": ["https://www.essentialai-app.com/*"],
+  "content_scripts": [{
+    "matches": ["https://www.essentialai-app.com/*"],
+    "js": ["content.js"],
+    "run_at": "document_idle"
+  }],
   "background": {
     "service_worker": "background.js"
   },

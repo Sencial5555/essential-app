@@ -106,11 +106,21 @@ function showError(message) {
 async function scan(url) {
   showScanning(url);
   try {
+    const { essentialAuth } = await chrome.storage.local.get('essentialAuth');
+    const headers = {};
+    if (essentialAuth) {
+      headers['Authorization'] = `Bearer ${essentialAuth.token}`;
+      headers['X-User-Id']     = essentialAuth.userId;
+    }
     const form = new FormData();
     form.append('url', url);
-    const res = await fetch(API, { method: 'POST', body: form });
+    const res = await fetch(API, { method: 'POST', body: form, headers });
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
+      if (body.error === 'quota_exceeded') {
+        showError("You've used all your scans. Open Essential to upgrade.");
+        return;
+      }
       throw new Error(body.error || `Server error (${res.status})`);
     }
     const data = await res.json();
