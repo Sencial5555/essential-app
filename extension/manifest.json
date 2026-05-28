@@ -1,0 +1,15 @@
+{
+  "manifest_version": 3,
+  "name": "Essential — AI Image Detector",
+  "version": "1.0.0",
+  "description": "Detect AI-generated images with one right-click.",
+  "permissions": ["contextMenus", "storage"],
+  "host_permissions": ["https://www.essentialai-app.com/*"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Essential AI Detector"
+  }
+}

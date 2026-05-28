@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Essential</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #1a1e1f;
+      color: #e8eaeb;
+      width: 320px;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      padding: 13px 16px 11px;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+    }
+
+    .logo {
+      font-size: 15px;
+      font-weight: 700;
+      color: #5ba39e;
+      letter-spacing: -0.3px;
+    }
+
+    .content {
+      padding: 16px;
+    }
+
+    /* Idle */
+    .idle-wrap {
+      text-align: center;
+      padding: 20px 8px 12px;
+    }
+
+    .idle-icon {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 12px;
+      opacity: 0.3;
+      color: #5ba39e;
+    }
+
+    .idle-msg {
+      font-size: 13px;
+      color: #6b7477;
+      line-height: 1.55;
+    }
+
+    .idle-msg strong {
+      color: #b0b8bb;
+    }
+
+    /* Scanning */
+    .scanning-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 22px 0 16px;
+      gap: 11px;
+    }
+
+    .spinner {
+      width: 26px;
+      height: 26px;
+      border: 2.5px solid rgba(91,163,158,0.2);
+      border-top-color: #5ba39e;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .scanning-label {
+      font-size: 13px;
+      color: #6b7477;
+    }
+
+    /* Result */
+    .result-card {
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      padding: 13px;
+      background: #20272a;
+    }
+
+    .result-top {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .thumb {
+      width: 44px;
+      height: 44px;
+      border-radius: 6px;
+      object-fit: cover;
+      flex-shrink: 0;
+      background: rgba(255,255,255,0.05);
+    }
+
+    .result-score {
+      font-size: 28px;
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -1px;
+    }
+
+    .result-badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 4px;
+      border: 1px solid;
+      margin-top: 5px;
+    }
+
+    .result-desc {
+      font-size: 11px;
+      color: #6b7477;
+      margin-top: 8px;
+      line-height: 1.45;
+    }
+
+    .generator {
+      font-size: 11px;
+      color: #6b7477;
+      margin-top: 5px;
+    }
+
+    .generator span {
+      color: #b0b8bb;
+      font-weight: 500;
+    }
+
+    /* Signals */
+    .signals {
+      margin-top: 11px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(255,255,255,0.07);
+    }
+
+    .signals-heading {
+      font-size: 9px;
+      color: #6b7477;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 8px;
+    }
+
+    .signal-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .signal-row:last-child { margin-bottom: 0; }
+
+    .signal-name {
+      font-size: 11px;
+      color: #b0b8bb;
+      width: 112px;
+      flex-shrink: 0;
+    }
+
+    .signal-track {
+      flex: 1;
+      height: 4px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .signal-fill {
+      height: 100%;
+      border-radius: 2px;
+    }
+
+    .signal-pct {
+      font-size: 11px;
+      color: #6b7477;
+      width: 36px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    /* Actions */
+    .actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 8px;
+      border-radius: 7px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      transition: opacity 0.15s;
+      text-align: center;
+      text-decoration: none;
+      display: block;
+    }
+
+    .btn:hover { opacity: 0.82; }
+
+    .btn-primary { background: #5ba39e; color: #fff; }
+    .btn-secondary { background: rgba(255,255,255,0.07); color: #b0b8bb; }
+
+    /* Error */
+    .error-wrap {
+      padding: 12px 0 8px;
+    }
+
+    .error-msg {
+      font-size: 12px;
+      color: #d46a5e;
+      text-align: center;
+      line-height: 1.45;
+    }
+
+    /* Open link */
+    .open-link {
+      display: block;
+      text-align: center;
+      font-size: 11px;
+      color: #5ba39e;
+      text-decoration: none;
+      padding-top: 10px;
+    }
+
+    .open-link:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <span class="logo">Essential</span>
+  </div>
+  <div class="content" id="content"></div>
+  <script src="popup.js"></script>
+</body>
+</html>
