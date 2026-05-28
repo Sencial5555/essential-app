@@ -1544,8 +1544,15 @@
         ? `<p style="font-size:11px; color:var(--text-muted); font-style:italic; margin-bottom:8px; line-height:1.5;">${callout}</p>`
         : '';
 
-      // Technical row — "Not detected" stub when Sightengine returned 0; bar otherwise
-      const techRow = technical !== null ? (technical === 0 ? `
+      // Technical row — bar, "Not detected" stub (score=0), or "N/A" (file upload, Sightengine skipped)
+      const techRow = technical === null ? `
+        <div class="signal-row">
+          <span class="signal-name">Technical analysis</span>
+          <span class="signal-pct" style="color:var(--text-muted);">N/A</span>
+          <div class="signal-track">
+            <div style="width:8px; height:100%; border-radius:100px; background:var(--border-active);"></div>
+          </div>
+        </div>` : technical === 0 ? `
         <div class="signal-row">
           <span class="signal-name">Technical analysis</span>
           <span class="signal-pct" style="color:var(--text-muted);">Not detected</span>
@@ -1559,7 +1566,7 @@
           <div class="signal-track">
             <div class="signal-fill signal-bar-fill" style="background:${color}; --fill:${(technical/100).toFixed(3)};"></div>
           </div>
-        </div>`) : '';
+        </div>`;
 
       // Visual row — matches verdict color when both sources agree; teal only when diverging
       // (teal contrast is the visual signal for disagreement, not a permanent color)
