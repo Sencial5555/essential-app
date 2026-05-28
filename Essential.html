@@ -2104,8 +2104,8 @@
           )).json();
           if (Array.isArray(rows?.[0]?.scan_history)) cloudArr = rows[0].scan_history;
         } catch (_) {}
-        // Strip image blobs from local, then union with cloud (keyed by at timestamp)
-        const slim = localArr.filter(e => e?.at != null).map(({ thumb, full, ...rest }) => rest);
+        // Keep thumb (64px, ~4KB) for cross-device display; strip full (up to 900px)
+        const slim = localArr.filter(e => e?.at != null).map(({ full, ...rest }) => rest);
         const byAt = new Map();
         [...cloudArr, ...slim].forEach(e => { if (e?.at != null) byAt.set(Number(e.at), e); });
         const merged = [...byAt.values()].sort((a, b) => Number(b.at) - Number(a.at)).slice(0, 20);
