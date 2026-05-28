@@ -185,6 +185,16 @@
     <p>When Sightengine is highly confident an image is human-made, the image is also sent to <a href="https://anthropic.com" target="_blank">Anthropic</a> (Claude) as a second opinion to catch potential false negatives. The two scores are averaged to produce the final result.</p>
     <p>We do not store your images on our servers. Each service's own privacy policy governs how they handle images on their end. Based on their documentation, images are not retained after analysis.</p>
 
+    <h2>Chrome Extension</h2>
+    <p>The Essential Chrome Extension adds a right-click "Scan with Essential" option to images across the web. Here is what the extension does with your data:</p>
+    <ul>
+      <li><strong>Authentication sync</strong> — when you are signed in on essentialai-app.com, the extension reads your Supabase session token from that page's local storage and stores it in Chrome's extension storage (<code>chrome.storage.local</code>). This is used only to authenticate scan requests on your behalf. The token is never sent to any server other than essentialai-app.com and Supabase.</li>
+      <li><strong>Image URLs</strong> — when you right-click and scan an image, the image's URL is sent to our API (essentialai-app.com/api/scan). The same image processing and third-party analysis described above applies.</li>
+      <li><strong>Scan history</strong> — extension scan results are written back to your local browser storage on essentialai-app.com. No scan history is sent to our servers.</li>
+      <li><strong>No browsing history</strong> — the extension does not read, collect, or transmit your browsing history. It only interacts with images you explicitly right-click on.</li>
+    </ul>
+    <p>The extension requests the following permissions: <strong>contextMenus</strong> (to add the right-click option), <strong>storage</strong> (to store your auth token locally), <strong>scripting</strong> and <strong>tabs</strong> (to sync your login session from the Essential website tab). These permissions are used solely for the functionality described above.</p>
+
     <h2>Cookies</h2>
     <p>We do not use cookies. We use browser local storage strictly for functional purposes: keeping you signed in, remembering your scan count, and storing your scan history locally on your device. This data never leaves your browser unless you are signed in, in which case your scan quota is synced to our database.</p>
 
