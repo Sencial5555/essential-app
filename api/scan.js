@@ -41,9 +41,11 @@ export default async function handler(req) {
   // Blend its score into the final only for borderline-human cases (Sightengine ≤10% AI).
   let finalScore = sgScore;
   let visual     = null;
+  let generator  = null;
   try {
     const claudeResult = await getClaudeAnalysis(mediaBuffer, mediaType, imgUrl);
-    visual = claudeResult.ai_probability;
+    visual    = claudeResult.ai_probability;
+    generator = claudeResult.generator;
     if (sgScore <= 0.10) {
       if (claudeResult.ai_probability >= 70) {
         // Claude strongly disagrees with Sightengine — trust it (slight discount for single-source)
@@ -69,7 +71,7 @@ export default async function handler(req) {
     ai_generated: finalScore,
     technical:   Math.round(sgScore * 100),
     visual,
-    generator:   claudeResult?.generator ?? null,
+    generator,
   });
 }
 
