@@ -1904,6 +1904,23 @@
     function clearHistory() {
       saveHistory([]);
       renderHistory();
+      // Also wipe cloud so other devices don't resurrect cleared entries
+      if (currentUser) {
+        const raw   = localStorage.getItem('sb-tjzjwyjggmrcmwawrtpm-auth-token');
+        const token = raw ? JSON.parse(raw)?.access_token : null;
+        if (token) {
+          fetch(`https://tjzjwyjggmrcmwawrtpm.supabase.co/rest/v1/scan_quota?user_id=eq.${currentUser.id}`, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+              'apikey':        'sb_publishable_E0cyz5LQVlBvKsg9lzDkrg_XtTVdfEH',
+              'Authorization': `Bearer ${token}`,
+              'Prefer':        'return=minimal',
+            },
+            body: JSON.stringify({ scan_history: [] }),
+          }).catch(() => {});
+        }
+      }
     }
     function openThumblightbox(src) {
       const lb = document.getElementById('thumb-lightbox');
