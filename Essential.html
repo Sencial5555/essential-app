@@ -702,6 +702,7 @@
       /* Hairline dividers: keep them 1px wide, no padding */
       #site-footer > div > span:empty { padding: 0 !important; width: 1px; flex-shrink: 0; }
       #site-footer > p { margin-top: 0 !important; white-space: nowrap; text-align: center; }
+      #site-footer .footer-footnote { display: none; }
       #page-wrapper > #site-footer { position: relative; }
       #system-status { position: absolute; left: 50%; transform: translateX(-50%); }
 
@@ -957,7 +958,7 @@
       <p style="margin-top:8px; font-size:11px; color:var(--text-secondary);">
         <a href="/privacy.html" style="color:var(--text-secondary); text-decoration:none;" onmouseover="this.style.color='var(--accent-blue)'" onmouseout="this.style.color='var(--text-secondary)'">Privacy Policy</a>
       </p>
-      <p style="margin-top:6px; font-size:10px; color:var(--text-muted);">Results are probabilistic. Stylized or edited images may affect accuracy.</p>
+      <p class="footer-footnote" style="margin-top:6px; font-size:10px; color:var(--text-muted);">Results are probabilistic. Stylized or edited images may affect accuracy.</p>
     </footer>
 
   </div><!-- /page wrapper -->
