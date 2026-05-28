@@ -1899,6 +1899,7 @@
       const arr = [entry, ...loadHistory()].slice(0, 20);
       saveHistory(arr);
       renderHistory();
+      saveHistoryToCloud(arr);
     }
     function clearHistory() {
       saveHistory([]);
@@ -2065,6 +2066,65 @@
       }
     }
 
+    async function saveHistoryToCloud(arr) {
+      if (!currentUser) return;
+      try {
+        const raw   = localStorage.getItem('sb-tjzjwyjggmrcmwawrtpm-auth-token');
+        const token = raw ? JSON.parse(raw)?.access_token : null;
+        if (!token) return;
+        // Strip base64 image data — only metadata goes to cloud
+        const slim = arr.map(({ thumb, full, ...rest }) => rest);
+        await fetch(
+          `https://tjzjwyjggmrcmwawrtpm.supabase.co/rest/v1/scan_quota?user_id=eq.${currentUser.id}`,
+          {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+              'apikey': 'sb_publishable_E0cyz5LQVlBvKsg9lzDkrg_XtTVdfEH',
+              'Authorization': `Bearer ${token}`,
+              'Prefer': 'return=minimal',
+            },
+            body: JSON.stringify({ scan_history: slim }),
+          }
+        );
+      } catch (_) {}
+    }
+
+    function mergeHistory(cloudArr) {
+      if (!Array.isArray(cloudArr) || !cloudArr.length) return;
+      const local     = loadHistory();
+      const localByAt = new Map(local.map(e => [e.at, e]));
+      // Use local entry (has thumbnail) when we have it, else cloud entry
+      const merged = cloudArr.map(e => localByAt.get(e.at) || e);
+      merged.sort((a, b) => b.at - a.at);
+      saveHistory(merged.slice(0, 20));
+      renderHistory();
+    }
+
+    let _realtimeChannel = null;
+    function subscribeRealtime(userId) {
+      if (_realtimeChannel) { sb.removeChannel(_realtimeChannel); _realtimeChannel = null; }
+      _realtimeChannel = sb
+        .channel(`quota-${userId}`)
+        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'scan_quota', filter: `user_id=eq.${userId}` }, payload => {
+          const d = payload.new;
+          // Update quota counters immediately
+          subscriptionStatus = d.subscription_status ?? 'none';
+          creditsRemaining   = d.credits_remaining   ?? 0;
+          monthlyScansUsed   = d.monthly_scans_used   ?? 0;
+          const sub = subscriptionStatus.trim().toLowerCase();
+          if (sub !== 'active' && sub !== 'trialing') {
+            if (d.reset_at && new Date(d.reset_at) > new Date()) {
+              scansRemaining = d.scans_remaining ?? 0;
+            }
+          }
+          updateProgressBar();
+          // Sync history from other device
+          if (d.scan_history) mergeHistory(d.scan_history);
+        })
+        .subscribe();
+    }
+
     async function loadQuota(userId) {
       const newReset = () => { resetAt = getNextLondonMidnight(); return resetAt.toISOString(); };
       const raw = localStorage.getItem('sb-tjzjwyjggmrcmwawrtpm-auth-token');
@@ -2076,8 +2136,12 @@
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       };
-      const cols = 'scans_remaining,reset_at,credits_remaining,subscription_status,monthly_scans_used,monthly_reset_at';
-      const rows = await (await fetch(`${base}/scan_quota?user_id=eq.${userId}&select=${cols}`, { headers: h })).json();
+      const cols = 'scans_remaining,reset_at,credits_remaining,subscription_status,monthly_scans_used,monthly_reset_at,scan_history';
+      let rows = await (await fetch(`${base}/scan_quota?user_id=eq.${userId}&select=${cols}`, { headers: h })).json();
+      // Fallback if scan_history column doesn't exist yet
+      if (!Array.isArray(rows)) {
+        rows = await (await fetch(`${base}/scan_quota?user_id=eq.${userId}&select=scans_remaining,reset_at,credits_remaining,subscription_status,monthly_scans_used,monthly_reset_at`, { headers: h })).json();
+      }
       if (!rows.length) {
         await fetch(`${base}/scan_quota`, { method: 'POST', headers: { ...h, 'Prefer': 'resolution=merge-duplicates,return=minimal' }, body: JSON.stringify({ user_id: userId, scans_remaining: 10, reset_at: newReset(), credits_remaining: 0, subscription_status: 'none', monthly_scans_used: 0 }) });
         scansRemaining = 10; creditsRemaining = 0; subscriptionStatus = 'none'; monthlyScansUsed = 0;
@@ -2099,9 +2163,10 @@
           }
         }
         // Paid plan fields
-        creditsRemaining  = d.credits_remaining  ?? 0;
+        creditsRemaining   = d.credits_remaining  ?? 0;
         subscriptionStatus = d.subscription_status ?? 'none';
-        monthlyScansUsed  = d.monthly_scans_used  ?? 0;
+        monthlyScansUsed   = d.monthly_scans_used  ?? 0;
+        if (d.scan_history) mergeHistory(d.scan_history);
         // Reset monthly count if past monthly_reset_at
         if (subscriptionStatus === 'active' && d.monthly_reset_at && new Date(d.monthly_reset_at) < new Date()) {
           monthlyScansUsed = 0;
@@ -2237,6 +2302,7 @@
         const cached = parseInt(localStorage.getItem(`ess_quota_${session.user.id}`));
         scansRemaining = isNaN(cached) ? 10 : cached;
         loadQuota(session.user.id);
+        subscribeRealtime(session.user.id);
       }
     });
 
@@ -2244,22 +2310,23 @@
     window.addEventListener('essential:quota-changed', () => {
       if (currentUser) loadQuota(currentUser.id);
     });
-    window.addEventListener('essential:history-changed', renderHistory);
+    window.addEventListener('essential:history-changed', () => {
+      renderHistory();
+      saveHistoryToCloud(loadHistory());
+    });
 
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden && currentUser) loadQuota(currentUser.id);
     });
 
-    // Poll every 30s so phone/other-device scans update the counter automatically
-    setInterval(() => { if (currentUser) loadQuota(currentUser.id); }, 30000);
-
-    sb.auth.onAuthStateChange(async (event, session) => {
+sb.auth.onAuthStateChange(async (event, session) => {
       if (session) {
         updateAuthUI(session.user);
         if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
           const cached = parseInt(localStorage.getItem(`ess_quota_${session.user.id}`));
           scansRemaining = isNaN(cached) ? 10 : cached;
           await loadQuota(session.user.id);
+          subscribeRealtime(session.user.id);
         }
       } else {
         // Ignore transient null events if a valid token still exists in localStorage
@@ -2268,6 +2335,7 @@
           const parsed = raw ? JSON.parse(raw) : null;
           if (parsed?.expires_at > Date.now() / 1000) return;
         } catch {}
+        if (_realtimeChannel) { sb.removeChannel(_realtimeChannel); _realtimeChannel = null; }
         updateAuthUI(null);
         scansRemaining = loadAnonQuota();
         updateProgressBar();
