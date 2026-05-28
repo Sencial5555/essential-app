@@ -63,9 +63,9 @@ export default async function handler(req) {
           finalScore = (sgScore + claudeResult.ai_probability / 100) / 2;
         }
       }
-      // Semantic override: impossible/surreal content is a strong AI signal
-      // even when pixel-level analysis looks clean
-      if (semantic >= 80 && finalScore < 0.70) {
+      // Semantic override: impossible/surreal content or strong AI design patterns
+      // detected — boost score even when pixel-level analysis looks clean
+      if (semantic >= 85 && finalScore < 0.70) {
         finalScore = Math.max(finalScore, 0.75);
       }
     }
@@ -77,7 +77,7 @@ export default async function handler(req) {
     // Weight toward the highest-confidence signal when any is very confident
     const max = Math.max(technical, visual, semantic);
     const avg = (technical + visual + semantic) / 3;
-    finalScore = max >= 75 ? (avg * 0.4 + max * 0.6) / 100 : avg / 100;
+    finalScore = max >= 85 ? (avg * 0.4 + max * 0.6) / 100 : avg / 100;
   } else {
     return json({ error: 'Analysis failed' }, 502);
   }
@@ -160,7 +160,7 @@ async function getClaudeAnalysis(mediaBuffer, mediaType, imgUrl) {
           role: 'user',
           content: [
             { type: 'image', source: imageSource },
-            { type: 'text', text: 'Analyze this image for AI generation. Check three things: (1) TECHNICAL: pixel artifacts, noise inconsistency, GAN fingerprints, unnatural sharpness. (2) VISUAL: AI-typical lighting, over-smooth textures, uncanny aesthetics. (3) SEMANTIC: physically impossible or surreal content that cannot exist in reality — human body merged with objects, impossible anatomy, dreamlike logic, scenes that defy physics. High semantic_anomaly alone is strong evidence of AI generation. Reply ONLY with valid JSON: {"ai_probability":<0-100>,"technical_fingerprint":<0-100>,"visual_style":<0-100>,"semantic_anomaly":<0-100>,"generator":"<midjourney|dalle|stable_diffusion|flux|firefly|ideogram|gpt4o|null>"} where ai_probability=overall verdict, technical_fingerprint=pixel/frequency artifacts, visual_style=aesthetic AI patterns, semantic_anomaly=impossible/surreal content score (0=normal real-world scene 100=physically impossible), generator=likely tool or null.' }
+            { type: 'text', text: 'Analyze this image for AI generation. Check three things: (1) TECHNICAL: pixel artifacts, noise inconsistency, GAN fingerprints, unnatural sharpness. (2) VISUAL: AI-typical lighting, over-smooth textures, uncanny valley aesthetics, AI illustration style. (3) SEMANTIC: score based on image type — for photographs: physically impossible/surreal scenes that defy reality; for logos/illustrations/icons: AI design signatures such as Midjourney or DALL-E aesthetic, mathematically over-perfect symmetry, generic overused icon metaphors (owl+circle, lion+shield, etc.), slight anatomical inconsistencies in illustrated figures, generic clipart composition, AI-typical linework and shading patterns, overly polished digital illustration style typical of AI art generators. High semantic_anomaly is strong AI evidence. Be conservative: only score high when confident. Reply ONLY with valid JSON: {"ai_probability":<0-100>,"technical_fingerprint":<0-100>,"visual_style":<0-100>,"semantic_anomaly":<0-100>,"generator":"<midjourney|dalle|stable_diffusion|flux|firefly|ideogram|gpt4o|null>"} where ai_probability=overall verdict 0=real 100=AI, technical_fingerprint=pixel/frequency artifacts, visual_style=aesthetic AI patterns, semantic_anomaly=AI content/design signatures 0-100, generator=likely tool or null.' }
           ]
         }]
       }),
