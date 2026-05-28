@@ -797,7 +797,7 @@
             <line x1="12" y1="3" x2="12" y2="15"/>
           </svg>
           <span style="font-size:16px;font-weight:500;color:var(--accent-violet);">Drop an image</span>
-          <span style="font-size:13px;color:var(--text-secondary);">or tap to browse · PNG, JPG, WebP up to 20MB</span>
+          <span style="font-size:13px;color:var(--text-secondary);">or tap to browse · paste with Ctrl+V · PNG, JPG, WebP</span>
         </div>
 
         <!-- Scan state label (inside zone, bottom) -->
@@ -1122,6 +1122,13 @@
       const file = e.dataTransfer.files[0];
       if (file && file.type.startsWith('image/')) loadFile(file);
     }
+
+    document.addEventListener('paste', (e) => {
+      if (currentState !== 'IDLE') return;
+      if (!quotaSnapshot().can) { currentUser ? openPaywall() : openLoginModal('register'); return; }
+      const item = [...(e.clipboardData?.items || [])].find(i => i.type.startsWith('image/'));
+      if (item) { e.preventDefault(); loadFile(item.getAsFile()); }
+    });
 
     function loadFile(file) {
       selectedFile = file;
