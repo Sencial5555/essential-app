@@ -13,7 +13,6 @@ export default async function handler(req) {
     return json({ error: 'No image provided' }, 400);
   }
 
-  // Read buffer once upfront so both Sightengine and Claude can use it
   let mediaBuffer = null;
   let mediaType   = 'image/jpeg';
   if (media) {
@@ -38,16 +37,17 @@ export default async function handler(req) {
 
   const sgScore = sgData.type?.ai_generated ?? 0;
 
-  // Call Claude when Sightengine is 90%+ confident it's human, to catch false negatives
+  // Always call Claude for visual signal breakdown.
+  // Blend its score into the final only for borderline-human cases (Sightengine ≤10% AI).
   let finalScore = sgScore;
-  if (sgScore <= 0.10) {
-    try {
-      const claudeScore = await getClaudeAIScore(mediaBuffer, mediaType, imgUrl);
-      finalScore = (sgScore + claudeScore) / 2;
-    } catch (_) {
-      // Fall back to Sightengine only if Claude fails
+  let signals    = null;
+  try {
+    const claudeResult = await getClaudeAnalysis(mediaBuffer, mediaType, imgUrl);
+    signals = claudeResult.signals;
+    if (sgScore <= 0.10) {
+      finalScore = (sgScore + claudeResult.ai_probability / 100) / 2;
     }
-  }
+  } catch (_) {}
 
   let type;
   if      (finalScore >= 0.70) type = 'ai';
@@ -58,32 +58,11 @@ export default async function handler(req) {
     ? Math.round((1 - finalScore) * 100)
     : Math.round(finalScore * 100);
 
-  let generator = null;
-  let generators = {};
-
-  if (sgData.type?.ai_generators) {
-    const entries = Object.entries(sgData.type.ai_generators)
-      .filter(([, v]) => typeof v === 'number')
-      .sort(([, a], [, b]) => b - a);
-
-    if (type !== 'human' && entries.length > 0 && entries[0][1] > 0.1) {
-      generator = entries[0][0];
-    }
-
-    generators = Object.fromEntries(
-      entries
-        .map(([k, v]) => [k, Math.round(v * 100)])
-        .filter(([, pct]) => pct > 0)
-        .slice(0, 5)
-    );
-  }
-
-  return json({ type, score: displayScore, ai_generated: finalScore, generator, generators, _debug_type: sgData.type });
+  return json({ type, score: displayScore, ai_generated: finalScore, signals });
 }
 
-async function getClaudeAIScore(mediaBuffer, mediaType, imgUrl) {
+async function getClaudeAnalysis(mediaBuffer, mediaType, imgUrl) {
   let imageSource;
-
   if (mediaBuffer) {
     const bytes = new Uint8Array(mediaBuffer);
     let binary = '';
@@ -105,12 +84,12 @@ async function getClaudeAIScore(mediaBuffer, mediaType, imgUrl) {
     },
     body: JSON.stringify({
       model:      'claude-haiku-4-5-20251001',
-      max_tokens: 64,
+      max_tokens: 150,
       messages: [{
         role: 'user',
         content: [
           { type: 'image', source: imageSource },
-          { type: 'text', text: 'Is this image AI-generated or a real photograph? Reply ONLY with valid JSON, nothing else: {"ai_probability": <integer 0-100>} where 0 = definitely real photo, 100 = definitely AI generated.' }
+          { type: 'text', text: 'Is this image AI-generated or a real photograph? Reply ONLY with valid JSON, nothing else: {"ai_probability":<0-100>,"signals":{"texture_consistency":<0-100>,"edge_naturalness":<0-100>,"lighting_coherence":<0-100>,"detail_distribution":<0-100>}} Where 100 = definitely AI-generated, 0 = definitely real photo.' }
         ]
       }]
     })
@@ -118,8 +97,22 @@ async function getClaudeAIScore(mediaBuffer, mediaType, imgUrl) {
 
   const data = await res.json();
   const text = data.content?.[0]?.text ?? '';
-  const match = text.match(/"ai_probability"\s*:\s*(\d+)/);
-  return match ? Math.min(100, Math.max(0, parseInt(match[1]))) / 100 : 0.5;
+
+  try {
+    const parsed = JSON.parse(text.match(/\{[\s\S]*\}/)?.[0] ?? '{}');
+    const clamp  = v => Math.min(100, Math.max(0, Math.round(Number(v) || 0)));
+    return {
+      ai_probability: clamp(parsed.ai_probability ?? 50),
+      signals: parsed.signals ? {
+        texture_consistency: clamp(parsed.signals.texture_consistency),
+        edge_naturalness:    clamp(parsed.signals.edge_naturalness),
+        lighting_coherence:  clamp(parsed.signals.lighting_coherence),
+        detail_distribution: clamp(parsed.signals.detail_distribution),
+      } : null,
+    };
+  } catch (_) {
+    return { ai_probability: 50, signals: null };
+  }
 }
 
 function json(data, status = 200) {

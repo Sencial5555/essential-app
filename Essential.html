@@ -866,7 +866,7 @@
 
         <!-- Signal breakdown — only shown after a real scan -->
         <div id="panel-signals" class="hidden" style="margin-top:16px; padding-top:14px; border-top:1px solid var(--border-subtle);">
-          <p style="font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.12em; margin-bottom:6px;">Generator Analysis</p>
+          <p style="font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.12em; margin-bottom:6px;">Signal Breakdown</p>
           <div id="panel-signals-list"><!-- populated by JS --></div>
         </div>
       </div>
@@ -1071,6 +1071,7 @@
     let pendingScanScore = null;
     let pendingGenerator = null;
     let pendingGenerators = null;
+    let pendingSignals = null;
 
     // ── DOM refs ───────────────────────────
     const uploadZone       = document.getElementById('upload-zone');
@@ -1176,7 +1177,7 @@
 
         const res = await fetch('/api/scan', { method: 'POST', body: form });
         if (!res.ok) throw new Error('API error');
-        const { type, score, generator, generators } = await res.json();
+        const { type, score, generator, generators, signals } = await res.json();
 
         stopScanStages();
         if (snap.can) {
@@ -1185,6 +1186,7 @@
           pendingScanScore = score;
           pendingGenerator = generator || null;
           pendingGenerators = generators || null;
+          pendingSignals = signals || null;
           setState('RESULT_' + type.toUpperCase());
           if (userAtScanStart) saveQuota(userAtScanStart.id);
           else saveAnonQuota();
@@ -1423,13 +1425,17 @@
     };
 
     const generatorDisplayNames = {
-      midjourney:       'Midjourney',
-      dalle:            'DALL·E',
-      stable_diffusion: 'Stable Diffusion',
-      flux:             'Flux',
-      firefly:          'Adobe Firefly',
-      ideogram:         'Ideogram',
-      gpt4o:            'GPT-4o Image',
+      midjourney:          'Midjourney',
+      dalle:               'DALL·E',
+      stable_diffusion:    'Stable Diffusion',
+      flux:                'Flux',
+      firefly:             'Adobe Firefly',
+      ideogram:            'Ideogram',
+      gpt4o:               'GPT-4o Image',
+      texture_consistency: 'Texture Consistency',
+      edge_naturalness:    'Edge Naturalness',
+      lighting_coherence:  'Lighting Coherence',
+      detail_distribution: 'Detail Distribution',
     };
 
     function generatorsHtml(generators, color, type) {
@@ -1467,7 +1473,7 @@
           </div>
           <p style="font-size:14px; font-weight:600; color:${c.color};">${c.label}</p>
           <p style="font-size:13px; color:var(--text-secondary); margin-top:4px; line-height:1.5;">${c.sub}</p>
-          ${pendingGenerators && Object.keys(pendingGenerators).length ? `<div style="margin-top:14px; padding-top:14px; border-top:1px solid ${c.border};">${generatorsHtml(pendingGenerators, c.color, type)}</div>` : ''}
+          ${(pendingSignals || pendingGenerators) && Object.keys(pendingSignals || pendingGenerators).length ? `<div style="margin-top:14px; padding-top:14px; border-top:1px solid ${c.border};">${generatorsHtml(pendingSignals || pendingGenerators, c.color, type)}</div>` : ''}
           <div style="display:flex; gap:8px; margin-top:14px;">
             <button class="icon-btn" onclick="copyResult()" style="flex:1; justify-content:center; height:36px;">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
@@ -1522,13 +1528,15 @@
       pendingGenerator = null;
       panelCard.style.borderColor = p.border;
 
-      // Generator breakdown — only show if there are real entries
-      if (pendingGenerators && Object.keys(pendingGenerators).length) {
-        panelSignalsList.innerHTML = generatorsHtml(pendingGenerators, p.color, type);
+      // Signal breakdown — prefer Claude signals, fall back to Sightengine generators
+      const signalData = pendingSignals || pendingGenerators;
+      if (signalData && Object.keys(signalData).length) {
+        panelSignalsList.innerHTML = generatorsHtml(signalData, p.color, type);
         show(panelSignals);
       } else {
         hide(panelSignals);
       }
+      pendingSignals = null;
       pendingGenerators = null;
       show(panelCopy);
       show(document.getElementById('panel-disclaimer'));
