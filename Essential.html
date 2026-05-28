@@ -1653,8 +1653,8 @@
       pendingGenerator = null;
       panelCard.style.borderColor = p.border;
 
-      // Two-row signal breakdown
-      if (pendingTechnical !== null) {
+      // Two-row signal breakdown — show if either signal has data
+      if (pendingTechnical !== null || pendingVisual !== null) {
         panelSignalsList.innerHTML = breakdownHtml(pendingTechnical, pendingVisual, type, p.color);
         show(panelSignals);
       } else {
