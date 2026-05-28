@@ -1140,7 +1140,7 @@
 
     async function parseMetadata(file) {
       try {
-        const { parse } = await import('https://cdn.jsdelivr.net/npm/exifr@7/dist/lite.esm.js');
+        const { parse } = await import('https://cdn.jsdelivr.net/npm/exifr@7/dist/full.esm.js');
         return await parse(file, true) || null;
       } catch (_) { return null; }
     }
