@@ -152,7 +152,7 @@ async function scan(url) {
     const data = await res.json();
     if (data.error) throw new Error(data.error);
     showResult(data, url);
-    notifyWebsite(data, url, essentialAuth?.userId);
+    notifyWebsite(data, url);
   } catch (e) {
     showError(e.message || 'Something went wrong. Try uploading on essentialai-app.com.');
   }
@@ -205,42 +205,40 @@ const HISTORY_CONFIGS = {
   ai:         { label: 'AI Generated', color: 'var(--result-crimson)', bg: 'rgba(212,106,94,0.10)', border: 'rgba(212,106,94,0.28)' },
 };
 
-function notifyWebsite(scanData, imgUrl, userId) {
-  const cfg = HISTORY_CONFIGS[scanData?.type] || HISTORY_CONFIGS.human;
+function notifyWebsite(scanData, imgUrl) {
+  chrome.storage.local.get('essentialAuth').then(({ essentialAuth }) => {
+    const userId = essentialAuth?.userId;
+    const cfg    = HISTORY_CONFIGS[scanData?.type] || HISTORY_CONFIGS.human;
 
-  let name = 'image';
-  try {
-    const u = new URL(imgUrl);
-    name = u.pathname.split('/').filter(Boolean).pop() || u.hostname;
-  } catch (_) {}
+    let name = 'image';
+    try {
+      const u = new URL(imgUrl);
+      name = u.pathname.split('/').filter(Boolean).pop() || u.hostname;
+    } catch (_) {}
 
-  const entry = userId ? {
-    type: scanData.type, label: cfg.label, color: cfg.color,
-    bg: cfg.bg, border: cfg.border, score: scanData.score,
-    name, thumb: imgUrl, full: imgUrl, at: Date.now(),
-  } : null;
+    if (userId) {
+      chrome.storage.local.set({
+        pendingHistoryEntry: {
+          entry: {
+            type: scanData.type, label: cfg.label, color: cfg.color,
+            bg: cfg.bg, border: cfg.border, score: scanData.score,
+            name, thumb: imgUrl, full: imgUrl, at: Date.now(),
+          },
+          historyKey: `essential-scan-history-v1-${userId}`,
+        }
+      });
+    }
 
-  const historyKey = userId ? `essential-scan-history-v1-${userId}` : null;
-
-  chrome.tabs.query({ url: 'https://www.essentialai-app.com/*' })
-    .then(tabs => tabs.forEach(tab =>
-      chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        world: 'MAIN',
-        func: (entry, historyKey) => {
-          if (entry && historyKey) {
-            try {
-              const arr = JSON.parse(localStorage.getItem(historyKey) || '[]');
-              localStorage.setItem(historyKey, JSON.stringify([entry, ...arr].slice(0, 20)));
-              window.dispatchEvent(new CustomEvent('essential:history-changed'));
-            } catch (_) {}
-          }
-          window.dispatchEvent(new CustomEvent('essential:quota-changed'));
-        },
-        args: [entry, historyKey],
-      }).catch(() => {})
-    ))
-    .catch(() => {});
+    // Fire quota refresh event directly into open website tabs
+    chrome.tabs.query({ url: 'https://www.essentialai-app.com/*' })
+      .then(tabs => tabs.forEach(tab =>
+        chrome.scripting.executeScript({
+          target: { tabId: tab.id },
+          world: 'MAIN',
+          func: () => window.dispatchEvent(new CustomEvent('essential:quota-changed')),
+        }).catch(() => {})
+      )).catch(() => {});
+  });
 }
 
 async function syncFromOpenTab() {

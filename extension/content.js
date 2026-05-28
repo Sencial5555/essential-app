@@ -15,6 +15,29 @@ function syncAuth() {
   } catch (_) {}
 }
 
+function processPendingHistory() {
+  chrome.storage.local.get('pendingHistoryEntry', ({ pendingHistoryEntry }) => {
+    if (!pendingHistoryEntry) return;
+    chrome.storage.local.remove('pendingHistoryEntry');
+    const { entry, historyKey } = pendingHistoryEntry;
+    if (!entry || !historyKey) return;
+    try {
+      const arr = JSON.parse(localStorage.getItem(historyKey) || '[]');
+      localStorage.setItem(historyKey, JSON.stringify([entry, ...arr].slice(0, 20)));
+      window.dispatchEvent(new CustomEvent('essential:history-changed'));
+    } catch (_) {}
+  });
+}
+
 syncAuth();
 window.addEventListener('storage', syncAuth);
 
+// Process any history entry saved while the site wasn't open
+processPendingHistory();
+
+// Process in real-time when popup scans while site is open
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === 'local' && changes.pendingHistoryEntry?.newValue) {
+    processPendingHistory();
+  }
+});
