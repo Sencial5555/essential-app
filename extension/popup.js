@@ -16,7 +16,11 @@ let lastUrl = null;
 document.addEventListener('DOMContentLoaded', async () => {
   chrome.action.setBadgeText({ text: '' });
 
-  const { essentialAuth, pendingScan } = await chrome.storage.local.get(['essentialAuth', 'pendingScan']);
+  let { essentialAuth, pendingScan } = await chrome.storage.local.get(['essentialAuth', 'pendingScan']);
+
+  if (!essentialAuth) {
+    essentialAuth = await syncFromOpenTab();
+  }
 
   if (!essentialAuth) {
     await chrome.storage.local.remove('pendingScan');
@@ -192,6 +196,21 @@ function rowHtml(name, fill, label, color) {
       <span class="signal-pct" style="${pctStyle}">${label}</span>
     </div>
   `;
+}
+
+async function syncFromOpenTab() {
+  try {
+    const tabs = await chrome.tabs.query({ url: 'https://www.essentialai-app.com/*' });
+    if (!tabs.length) return null;
+    for (const tab of tabs) {
+      await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['content.js'] }).catch(() => {});
+    }
+    await new Promise(r => setTimeout(r, 300));
+    const { essentialAuth } = await chrome.storage.local.get('essentialAuth');
+    return essentialAuth || null;
+  } catch (_) {
+    return null;
+  }
 }
 
 function set(html) {

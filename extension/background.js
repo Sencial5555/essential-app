@@ -1,3 +1,12 @@
+async function injectIntoEssentialTabs() {
+  try {
+    const tabs = await chrome.tabs.query({ url: 'https://www.essentialai-app.com/*' });
+    for (const tab of tabs) {
+      chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['content.js'] }).catch(() => {});
+    }
+  } catch (_) {}
+}
+
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.removeAll(() => {
     chrome.contextMenus.create({
@@ -6,7 +15,10 @@ chrome.runtime.onInstalled.addListener(() => {
       contexts: ['image'],
     });
   });
+  injectIntoEssentialTabs();
 });
+
+chrome.runtime.onStartup.addListener(injectIntoEssentialTabs);
 
 chrome.contextMenus.onClicked.addListener(async (info) => {
   if (info.menuItemId !== 'scan-essential') return;
