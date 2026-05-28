@@ -16,7 +16,14 @@ let lastUrl = null;
 document.addEventListener('DOMContentLoaded', async () => {
   chrome.action.setBadgeText({ text: '' });
 
-  const { pendingScan } = await chrome.storage.local.get('pendingScan');
+  const { essentialAuth, pendingScan } = await chrome.storage.local.get(['essentialAuth', 'pendingScan']);
+
+  if (!essentialAuth) {
+    await chrome.storage.local.remove('pendingScan');
+    showSignInRequired();
+    return;
+  }
+
   if (pendingScan) {
     lastUrl = pendingScan;
     await chrome.storage.local.remove('pendingScan');
@@ -25,6 +32,21 @@ document.addEventListener('DOMContentLoaded', async () => {
     showIdle();
   }
 });
+
+function showSignInRequired() {
+  set(`
+    <div class="idle-wrap">
+      <div class="idle-icon">
+        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+      </div>
+      <p class="idle-msg">Sign in to Essential to use the extension</p>
+    </div>
+    <a class="open-link" href="https://www.essentialai-app.com" target="_blank">Sign in at Essential &rarr;</a>
+  `);
+}
 
 function showIdle() {
   set(`

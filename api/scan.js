@@ -145,12 +145,13 @@ async function enforceQuota(token, userId) {
       { headers: h }
     )).json();
     if (!Array.isArray(rows) || !rows.length) return false;
-    const d   = rows[0];
-    const now = new Date();
+    const d      = rows[0];
+    const now    = new Date();
     const expired = d.reset_at && new Date(d.reset_at) < now;
+    const subStatus = (d.subscription_status || '').trim().toLowerCase();
 
     let patch;
-    if (d.subscription_status === 'active') {
+    if (subStatus === 'active' || subStatus === 'trialing') {
       if ((d.monthly_scans_used || 0) >= 5000) return false;
       patch = { monthly_scans_used: (d.monthly_scans_used || 0) + 1 };
     } else if ((d.credits_remaining || 0) > 0) {
