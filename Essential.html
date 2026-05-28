@@ -28,6 +28,9 @@
       --result-amber:  #b07a30;
       --result-crimson:#b54c40;
       --laser-color:   #3e7c78;
+      --bg-glow-a:     rgba(62,124,120,0.07);
+      --bg-glow-b:     rgba(62,124,120,0.05);
+      --bg-grid:       rgba(31,41,55,0.030);
     }
     :root[data-theme="dark"] {
       --bg-primary:    #14181a;
@@ -46,6 +49,38 @@
       --result-amber:  #d4a05a;
       --result-crimson:#d46a5e;
       --laser-color:   #5ba39e;
+      --bg-glow-a:     rgba(91,163,158,0.10);
+      --bg-glow-b:     rgba(91,163,158,0.07);
+      --bg-grid:       rgba(255,255,255,0.022);
+    }
+
+    /* ── Ambient background — layered radial glows + faint grid ── */
+    #bg-ambient {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      overflow: hidden;
+      transition: opacity 400ms ease;
+    }
+    #bg-ambient::before {
+      content: '';
+      position: absolute;
+      inset: -20%;
+      background:
+        radial-gradient(42% 38% at 18% 12%, var(--bg-glow-a) 0%, transparent 70%),
+        radial-gradient(46% 44% at 84% 88%, var(--bg-glow-b) 0%, transparent 72%);
+    }
+    #bg-ambient::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(to right, var(--bg-grid) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--bg-grid) 1px, transparent 1px);
+      background-size: 64px 64px;
+      -webkit-mask-image: radial-gradient(120% 120% at 50% 40%, #000 30%, transparent 78%);
+              mask-image: radial-gradient(120% 120% at 50% 40%, #000 30%, transparent 78%);
     }
 
     /* ── Base ── */
@@ -712,6 +747,9 @@
 </head>
 
 <body>
+  <!-- Ambient background — sits behind everything (z-index: 0) -->
+  <div id="bg-ambient" aria-hidden="true"></div>
+
   <!-- ══════════════════════════════════════
        PAGE WRAPPER
   ══════════════════════════════════════ -->
