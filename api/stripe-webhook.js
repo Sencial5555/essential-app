@@ -92,11 +92,16 @@ export default async function handler(req) {
     const userId = sub.metadata?.user_id;
     if (!userId) return ok();
 
-    const active = sub.status === 'active';
-    await patchQuota(userId, {
-      subscription_status: active ? 'active' : 'canceled',
-      ...(active ? {} : { subscription_id: null }),
-    });
+    let newStatus, extra = {};
+    if (sub.status === 'active' && sub.cancel_at_period_end) {
+      newStatus = 'canceling';
+    } else if (sub.status === 'active') {
+      newStatus = 'active';
+    } else {
+      newStatus = 'canceled';
+      extra = { subscription_id: null };
+    }
+    await patchQuota(userId, { subscription_status: newStatus, ...extra });
   }
 
   return ok();

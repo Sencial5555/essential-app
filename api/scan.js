@@ -190,7 +190,7 @@ async function checkQuota(token, userId) {
     const expired   = d.reset_at && new Date(d.reset_at) < now;
     const subStatus = (d.subscription_status || '').trim().toLowerCase();
 
-    if (subStatus === 'active' || subStatus === 'trialing') {
+    if (subStatus === 'active' || subStatus === 'trialing' || subStatus === 'canceling') {
       if ((d.monthly_scans_used || 0) >= 5000) return { allowed: false, quotaData: null };
       return { allowed: true, quotaData: { ...d, _mode: 'subscription' } };
     } else if ((d.credits_remaining || 0) > 0) {

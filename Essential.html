@@ -966,6 +966,12 @@
               <p id="panel-user-email" style="font-size:11px; color:var(--text-muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"></p>
             </div>
           </div>
+          <!-- Subscription badge — shown only when sub is active or canceling -->
+          <div id="panel-sub-info" class="hidden" style="font-size:12px; color:var(--text-secondary); padding:6px 10px; background:var(--accent-soft); border-radius:8px; text-align:center;">
+            <span id="panel-sub-label"></span>
+          </div>
+          <!-- Cancel button — shown only when sub is active (not already canceling) -->
+          <button id="panel-cancel-btn" class="hidden btn-active" onclick="cancelSubscription()" style="width:100%; height:36px; border-radius:9px; background:transparent; border:1px solid var(--result-crimson); color:var(--result-crimson); font-size:12px; cursor:pointer;">Cancel subscription</button>
           <button onclick="signOut()" style="width:100%; height:36px; border-radius:9px; background:transparent; border:1px solid var(--border-subtle); color:var(--text-secondary); font-size:13px; cursor:pointer;" class="btn-active">Sign out</button>
           <p style="text-align:center;">
             <a onclick="openPaywall()" style="font-size:12px; color:var(--accent-violet); text-decoration:none; cursor:pointer;">Pricing &amp; Plan Overview →</a>
@@ -1241,7 +1247,7 @@
         monthly: monthlyScansUsed,
         credits: creditsRemaining,
         free:    scansRemaining,
-        can:     subscriptionStatus === 'active' ? monthlyScansUsed < 5000
+        can:     (subscriptionStatus === 'active' || subscriptionStatus === 'canceling') ? monthlyScansUsed < 5000
                    : creditsRemaining > 0 ? true
                    : scansRemaining > 0,
       };
@@ -1452,7 +1458,7 @@
 
     function updateProgressBar() {
       let remaining, max, label;
-      if (subscriptionStatus === 'active') {
+      if (subscriptionStatus === 'active' || subscriptionStatus === 'canceling') {
         remaining = 5000 - monthlyScansUsed;
         max = 5000;
         label = `Unlimited · ${monthlyScansUsed} used this month`;
@@ -2030,7 +2036,7 @@
       clearInterval(countdownTimer);
       const el = document.getElementById('reset-countdown');
       if (!el) return;
-      if (subscriptionStatus === 'active') { el.textContent = 'Unlimited monthly plan active'; return; }
+      if (subscriptionStatus === 'active' || subscriptionStatus === 'canceling') { el.textContent = subscriptionStatus === 'canceling' ? 'Subscription cancels at period end' : 'Unlimited monthly plan active'; return; }
       if (creditsRemaining > 0) { el.textContent = 'Credits never expire'; return; }
       if (!resetAt) return;
       function tick() {
@@ -2205,6 +2211,7 @@
             }
           }
           updateProgressBar();
+          updateSubPanel();
           // Sync history from other device
           if (d.scan_history) mergeHistory(d.scan_history);
         })
@@ -2254,7 +2261,7 @@
         monthlyScansUsed   = d.monthly_scans_used  ?? 0;
         if (d.scan_history) mergeHistory(d.scan_history);
         // Reset monthly count if past monthly_reset_at
-        if (subscriptionStatus === 'active' && d.monthly_reset_at && new Date(d.monthly_reset_at) < new Date()) {
+        if ((subscriptionStatus === 'active' || subscriptionStatus === 'canceling') && d.monthly_reset_at && new Date(d.monthly_reset_at) < new Date()) {
           monthlyScansUsed = 0;
           const nextMonthly = new Date(); nextMonthly.setMonth(nextMonthly.getMonth() + 1);
           await fetch(`${base}/scan_quota?user_id=eq.${userId}`, { method: 'PATCH', headers: { ...h, 'Prefer': 'return=minimal' }, body: JSON.stringify({ monthly_scans_used: 0, monthly_reset_at: nextMonthly.toISOString() }) });
@@ -2263,6 +2270,7 @@
       localStorage.setItem(`ess_quota_${userId}`, scansRemaining);
       updateProgressBar();
       startResetCountdown();
+      updateSubPanel();
     }
 
     async function saveQuota(userId) {
@@ -2339,6 +2347,70 @@
         userEl.style.display = 'none';
         renderHistory();
       }
+      updateSubPanel();
+    }
+
+    function updateSubPanel() {
+      const info      = document.getElementById('panel-sub-info');
+      const label     = document.getElementById('panel-sub-label');
+      const cancelBtn = document.getElementById('panel-cancel-btn');
+      if (!info || !cancelBtn) return;
+      const isSub = subscriptionStatus === 'active' || subscriptionStatus === 'canceling';
+      if (isSub) {
+        info.classList.remove('hidden');
+        label.textContent = subscriptionStatus === 'canceling'
+          ? 'Cancels at end of billing period'
+          : 'Monthly plan active';
+      } else {
+        info.classList.add('hidden');
+      }
+      if (subscriptionStatus === 'active') {
+        cancelBtn.classList.remove('hidden');
+      } else {
+        cancelBtn.classList.add('hidden');
+      }
+    }
+
+    let _cancelConfirmPending = false;
+    async function cancelSubscription() {
+      const btn = document.getElementById('panel-cancel-btn');
+      if (!_cancelConfirmPending) {
+        _cancelConfirmPending = true;
+        btn.textContent = 'Tap again to confirm';
+        btn.style.fontWeight = '600';
+        setTimeout(() => {
+          if (_cancelConfirmPending) {
+            _cancelConfirmPending = false;
+            btn.textContent = 'Cancel subscription';
+            btn.style.fontWeight = '';
+          }
+        }, 4000);
+        return;
+      }
+      _cancelConfirmPending = false;
+      btn.disabled = true;
+      btn.textContent = 'Canceling…';
+      try {
+        const raw   = localStorage.getItem('sb-tjzjwyjggmrcmwawrtpm-auth-token');
+        const token = raw ? JSON.parse(raw)?.access_token : null;
+        const res = await fetch('/api/cancel-subscription', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'X-User-Id':     currentUser.id,
+          },
+        });
+        if (!res.ok) throw new Error();
+        subscriptionStatus = 'canceling';
+        updateSubPanel();
+        updateProgressBar();
+        startResetCountdown();
+        showToast('Subscription canceled — access continues until the end of this billing period.');
+      } catch {
+        btn.disabled = false;
+        btn.textContent = 'Cancel subscription';
+        showToast('Could not cancel. Please try again.');
+      }
     }
 
     // Synchronously pre-seed from cached token so first paint shows correct auth state
@@ -2370,7 +2442,7 @@
         const poll = setInterval(async () => {
           if (++tries > 5 || !currentUser) { clearInterval(poll); onQuotaReset(); showToast(msg); return; }
           await loadQuota(currentUser.id);
-          if (subscriptionStatus === 'active' || creditsRemaining > 0) {
+          if (subscriptionStatus === 'active' || subscriptionStatus === 'canceling' || creditsRemaining > 0) {
             clearInterval(poll);
             onQuotaReset();
             showToast(msg);
