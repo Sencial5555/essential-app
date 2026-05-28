@@ -102,7 +102,7 @@ function showResult(data, thumbUrl) {
       </div>
       <p class="result-desc">${v.desc}</p>
       ${generatorHtml}
-      ${signalsHtml(data.technical, data.visual, data.type, v.color)}
+      ${signalsHtml(data.technical, data.visual, data.semantic, data.type, v.color)}
     </div>
     <div class="actions">
       <button class="btn btn-secondary" id="btn-new">New scan</button>
@@ -161,8 +161,8 @@ async function scan(url) {
   }
 }
 
-function signalsHtml(technical, visual, type, verdictColor) {
-  if (technical === null && visual === null) return '';
+function signalsHtml(technical, visual, semantic, type, verdictColor) {
+  if (technical === null && visual === null && semantic === null) return '';
 
   const rows = [];
 
@@ -178,6 +178,12 @@ function signalsHtml(technical, visual, type, verdictColor) {
     const agreeing = (type === 'ai' && visual > 50) || (type === 'human' && visual <= 50);
     const barColor = agreeing ? verdictColor : '#5ba39e';
     rows.push(rowHtml('Visual perception', Math.max(visual / 100, 0.05), `${visual}%`, barColor));
+  }
+
+  if (semantic !== null && semantic !== undefined) {
+    const agreeing = (type === 'ai' && semantic > 50) || (type === 'human' && semantic <= 50);
+    const barColor = agreeing ? verdictColor : '#5ba39e';
+    rows.push(rowHtml('Content analysis', Math.max(semantic / 100, 0.05), `${semantic}%`, barColor));
   }
 
   return `
