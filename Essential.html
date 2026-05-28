@@ -1432,9 +1432,12 @@
       gpt4o:            'GPT-4o Image',
     };
 
-    function generatorsHtml(generators, color) {
+    function generatorsHtml(generators, color, type) {
       if (!generators || Object.keys(generators).length === 0) {
-        return `<p style="font-size:12px; color:var(--text-muted); padding:4px 0;">No generator signatures detected.</p>`;
+        const msg = type === 'human'
+          ? 'No generator signatures detected.'
+          : 'Generator unidentified — source unknown.';
+        return `<p style="font-size:12px; color:var(--text-muted); padding:4px 0;">${msg}</p>`;
       }
       return Object.entries(generators).map(([key, pct], i) => {
         const name = generatorDisplayNames[key] || key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
@@ -1465,7 +1468,7 @@
           <p style="font-size:14px; font-weight:600; color:${c.color};">${c.label}</p>
           <p style="font-size:13px; color:var(--text-secondary); margin-top:4px; line-height:1.5;">${c.sub}</p>
           <div style="margin-top:14px; padding-top:14px; border-top:1px solid ${c.border};">
-            ${generatorsHtml(pendingGenerators, c.color)}
+            ${generatorsHtml(pendingGenerators, c.color, type)}
           </div>
           <div style="display:flex; gap:8px; margin-top:14px;">
             <button class="icon-btn" onclick="copyResult()" style="flex:1; justify-content:center; height:36px;">
@@ -1522,7 +1525,7 @@
       panelCard.style.borderColor = p.border;
 
       // Generator breakdown
-      panelSignalsList.innerHTML = generatorsHtml(pendingGenerators, p.color);
+      panelSignalsList.innerHTML = generatorsHtml(pendingGenerators, p.color, type);
       pendingGenerators = null;
       show(panelSignals);
       show(panelCopy);

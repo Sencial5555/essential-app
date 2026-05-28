@@ -71,7 +71,10 @@ export default async function handler(req) {
     }
 
     generators = Object.fromEntries(
-      entries.slice(0, 5).map(([k, v]) => [k, Math.round(v * 100)])
+      entries
+        .map(([k, v]) => [k, Math.round(v * 100)])
+        .filter(([, pct]) => pct > 0)
+        .slice(0, 5)
     );
   }
 
