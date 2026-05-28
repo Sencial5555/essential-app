@@ -78,7 +78,7 @@ export default async function handler(req) {
     );
   }
 
-  return json({ type, score: displayScore, ai_generated: finalScore, generator, generators });
+  return json({ type, score: displayScore, ai_generated: finalScore, generator, generators, _debug_type: sgData.type });
 }
 
 async function getClaudeAIScore(mediaBuffer, mediaType, imgUrl) {
