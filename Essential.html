@@ -1069,9 +1069,8 @@
     let selectedFile = null;
     let scanTimer = null;
     let pendingScanScore = null;
-    let pendingGenerator = null;
-    let pendingGenerators = null;
-    let pendingSignals = null;
+    let pendingTechnical = null;
+    let pendingVisual    = null;
 
     // ── DOM refs ───────────────────────────
     const uploadZone       = document.getElementById('upload-zone');
@@ -1177,16 +1176,15 @@
 
         const res = await fetch('/api/scan', { method: 'POST', body: form });
         if (!res.ok) throw new Error('API error');
-        const { type, score, generator, generators, signals } = await res.json();
+        const { type, score, technical, visual } = await res.json();
 
         stopScanStages();
         if (snap.can) {
           deductQuota(snap);
           updateProgressBar();
-          pendingScanScore = score;
-          pendingGenerator = generator || null;
-          pendingGenerators = generators || null;
-          pendingSignals = signals || null;
+          pendingScanScore  = score;
+          pendingTechnical  = technical ?? null;
+          pendingVisual     = visual    ?? null;
           setState('RESULT_' + type.toUpperCase());
           if (userAtScanStart) saveQuota(userAtScanStart.id);
           else saveAnonQuota();
@@ -1424,38 +1422,41 @@
       }
     };
 
-    const generatorDisplayNames = {
-      midjourney:          'Midjourney',
-      dalle:               'DALL·E',
-      stable_diffusion:    'Stable Diffusion',
-      flux:                'Flux',
-      firefly:             'Adobe Firefly',
-      ideogram:            'Ideogram',
-      gpt4o:               'GPT-4o Image',
-      texture_consistency: 'Texture Consistency',
-      edge_naturalness:    'Edge Naturalness',
-      lighting_coherence:  'Lighting Coherence',
-      detail_distribution: 'Detail Distribution',
-    };
+    function breakdownHtml(technical, visual, type, color) {
+      const rows = [
+        { label: 'Technical analysis', pct: technical, delay: 0   },
+        { label: 'Visual perception',  pct: visual,    delay: 80  },
+      ].filter(r => r.pct !== null && r.pct !== undefined);
 
-    function generatorsHtml(generators, color, type) {
-      if (!generators || Object.keys(generators).length === 0) {
-        const msg = type === 'human'
-          ? 'No generator signatures detected.'
-          : 'Generator unidentified — source unknown.';
-        return `<p style="font-size:12px; color:var(--text-muted); padding:4px 0;">${msg}</p>`;
+      if (!rows.length) return '';
+
+      let callout = '';
+      if (technical !== null && visual !== null) {
+        if ((type === 'ai' || type === 'suspicious') && visual < 40) {
+          callout = 'This image fools the eye but not the algorithm — a strong indicator of AI generation.';
+        } else if (type === 'ai' && visual >= 70) {
+          callout = 'Both technical and visual analysis confirm AI generation.';
+        } else if (type === 'suspicious') {
+          callout = 'Technical and visual analysis show mixed signals — review carefully.';
+        } else if (type === 'human' && visual >= 50) {
+          callout = 'Visually suspicious but no technical AI signatures detected.';
+        } else if (type === 'human') {
+          callout = 'Neither technical nor visual analysis detected AI generation patterns.';
+        }
       }
-      return Object.entries(generators).map(([key, pct], i) => {
-        const name = generatorDisplayNames[key] || key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-        return `
+
+      const calloutHtml = callout
+        ? `<p style="font-size:11px; color:var(--text-muted); font-style:italic; margin-bottom:8px; line-height:1.5;">${callout}</p>`
+        : '';
+
+      return calloutHtml + rows.map(({ label, pct, delay }) => `
         <div class="signal-row">
-          <span class="signal-name">${name}</span>
+          <span class="signal-name">${label}</span>
           <span class="signal-pct">${pct}%</span>
           <div class="signal-track">
-            <div class="signal-fill signal-bar-fill" style="background:${color}; --fill:${(pct/100).toFixed(3)}; animation-delay:${i*80}ms;"></div>
+            <div class="signal-fill signal-bar-fill" style="background:${color}; --fill:${(pct/100).toFixed(3)}; animation-delay:${delay}ms;"></div>
           </div>
-        </div>`;
-      }).join('');
+        </div>`).join('');
     }
 
     let lastResultType = null;
@@ -1473,7 +1474,7 @@
           </div>
           <p style="font-size:14px; font-weight:600; color:${c.color};">${c.label}</p>
           <p style="font-size:13px; color:var(--text-secondary); margin-top:4px; line-height:1.5;">${c.sub}</p>
-          ${(pendingSignals || pendingGenerators) && Object.keys(pendingSignals || pendingGenerators).length ? `<div style="margin-top:14px; padding-top:14px; border-top:1px solid ${c.border};">${generatorsHtml(pendingSignals || pendingGenerators, c.color, type)}</div>` : ''}
+          ${pendingTechnical !== null ? `<div style="margin-top:14px; padding-top:14px; border-top:1px solid ${c.border};">${breakdownHtml(pendingTechnical, pendingVisual, type, c.color)}</div>` : ''}
           <div style="display:flex; gap:8px; margin-top:14px;">
             <button class="icon-btn" onclick="copyResult()" style="flex:1; justify-content:center; height:36px;">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
@@ -1519,25 +1520,18 @@
       panelScore.textContent = '0%';
       panelScore.style.color = p.color;
       countUp(panelScore, displayScore);
-      if (pendingGenerator && type !== 'human') {
-        const name = pendingGenerator.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-        panelDesc.textContent = `${name} signatures detected.`;
-      } else {
-        panelDesc.textContent = p.desc;
-      }
-      pendingGenerator = null;
+      panelDesc.textContent = p.desc;
       panelCard.style.borderColor = p.border;
 
-      // Signal breakdown — prefer Claude signals, fall back to Sightengine generators
-      const signalData = pendingSignals || pendingGenerators;
-      if (signalData && Object.keys(signalData).length) {
-        panelSignalsList.innerHTML = generatorsHtml(signalData, p.color, type);
+      // Two-row signal breakdown
+      if (pendingTechnical !== null) {
+        panelSignalsList.innerHTML = breakdownHtml(pendingTechnical, pendingVisual, type, p.color);
         show(panelSignals);
       } else {
         hide(panelSignals);
       }
-      pendingSignals = null;
-      pendingGenerators = null;
+      pendingTechnical = null;
+      pendingVisual    = null;
       show(panelCopy);
       show(document.getElementById('panel-disclaimer'));
 
