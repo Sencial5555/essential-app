@@ -1455,17 +1455,19 @@
           </div>
         </div>` : '';
 
-      // Visual row — always teal (Claude's independent assessment, not the verdict color)
-      // Minimum fill of 0.05 so even very low values render a visible bar
+      // Visual row — matches verdict color when both sources agree; teal only when diverging
+      // (teal contrast is the visual signal for disagreement, not a permanent color)
       let visualRow = '';
       if (visual !== null && visual !== undefined) {
-        const visualFill = Math.max(visual / 100, 0.05).toFixed(3);
+        const visualFill  = Math.max(visual / 100, 0.05).toFixed(3);
+        const agreeing    = (technical > 50 && visual > 50) || (technical <= 50 && visual <= 50);
+        const visualColor = agreeing ? color : '#5ba39e';
         visualRow = `
           <div class="signal-row">
             <span class="signal-name">Visual perception</span>
             <span class="signal-pct">${visual}%</span>
             <div class="signal-track">
-              <div class="signal-fill signal-bar-fill" style="background:#5ba39e; --fill:${visualFill}; animation-delay:80ms;"></div>
+              <div class="signal-fill signal-bar-fill" style="background:${visualColor}; --fill:${visualFill}; animation-delay:80ms;"></div>
             </div>
           </div>`;
       }
