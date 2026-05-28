@@ -1456,28 +1456,18 @@
         </div>` : '';
 
       // Visual row — always teal (Claude's independent assessment, not the verdict color)
-      // Very low values (≤8%) render as a stub + dash to avoid an invisible sliver
+      // Minimum fill of 0.05 so even very low values render a visible bar
       let visualRow = '';
       if (visual !== null && visual !== undefined) {
-        if (visual <= 8) {
-          visualRow = `
-            <div class="signal-row">
-              <span class="signal-name">Visual perception</span>
-              <span class="signal-pct" style="color:var(--text-muted);">—</span>
-              <div class="signal-track">
-                <div style="width:8px; height:100%; border-radius:100px; background:var(--border-active);"></div>
-              </div>
-            </div>`;
-        } else {
-          visualRow = `
-            <div class="signal-row">
-              <span class="signal-name">Visual perception</span>
-              <span class="signal-pct">${visual}%</span>
-              <div class="signal-track">
-                <div class="signal-fill signal-bar-fill" style="background:#5ba39e; --fill:${(visual/100).toFixed(3)}; animation-delay:80ms;"></div>
-              </div>
-            </div>`;
-        }
+        const visualFill = Math.max(visual / 100, 0.05).toFixed(3);
+        visualRow = `
+          <div class="signal-row">
+            <span class="signal-name">Visual perception</span>
+            <span class="signal-pct">${visual}%</span>
+            <div class="signal-track">
+              <div class="signal-fill signal-bar-fill" style="background:#5ba39e; --fill:${visualFill}; animation-delay:80ms;"></div>
+            </div>
+          </div>`;
       }
 
       return calloutHtml + techRow + visualRow;
