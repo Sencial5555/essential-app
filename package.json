@@ -1,5 +1,9 @@
 {
+  "type": "module",
   "dependencies": {
     "motion": "^12.40.0"
+  },
+  "devDependencies": {
+    "sharp": "^0.34.5"
   }
 }
