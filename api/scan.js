@@ -204,8 +204,11 @@ async function checkQuota(token, userId) {
     const subStatus = (d.subscription_status || '').trim().toLowerCase();
 
     if (subStatus === 'active' || subStatus === 'trialing' || subStatus === 'canceling') {
-      if ((d.monthly_scans_used || 0) >= 5000) return { allowed: false, quotaData: null };
-      return { allowed: true, quotaData: { ...d, _mode: 'subscription' } };
+      const resetAt    = d.monthly_reset_at ? new Date(d.monthly_reset_at) : null;
+      const needsReset = resetAt && resetAt < now;
+      const effectiveUsed = needsReset ? 0 : (d.monthly_scans_used || 0);
+      if (effectiveUsed >= 5000) return { allowed: false, quotaData: null };
+      return { allowed: true, quotaData: { ...d, monthly_scans_used: effectiveUsed, _mode: 'subscription', _needs_reset: needsReset } };
     } else if ((d.credits_remaining || 0) > 0) {
       return { allowed: true, quotaData: { ...d, _mode: 'credits' } };
     } else if (expired) {
@@ -229,10 +232,15 @@ async function deductQuotaRow(token, userId, quotaData) {
     'Content-Type':  'application/json',
     'Prefer':        'return=minimal',
   };
-  const { _mode, _now, ...d } = quotaData;
+  const { _mode, _now, _needs_reset, ...d } = quotaData;
   let patch;
   if (_mode === 'subscription') {
     patch = { monthly_scans_used: (d.monthly_scans_used || 0) + 1 };
+    if (_needs_reset) {
+      const nextReset = new Date();
+      nextReset.setMonth(nextReset.getMonth() + 1);
+      patch.monthly_reset_at = nextReset.toISOString();
+    }
   } else if (_mode === 'credits') {
     patch = { credits_remaining: d.credits_remaining - 1 };
   } else if (_mode === 'reset') {

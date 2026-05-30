@@ -86,6 +86,25 @@ export default async function handler(req) {
     }
   }
 
+  if (event.type === 'invoice.payment_succeeded') {
+    const invoice = event.data.object;
+    if (invoice.billing_reason !== 'subscription_cycle') return ok();
+    const subId = invoice.subscription;
+    if (!subId) return ok();
+    const r = await fetch(`${SB_URL}/scan_quota?subscription_id=eq.${subId}&select=user_id`, { headers: sbHeaders() });
+    const rows = await r.json();
+    const userId = rows[0]?.user_id;
+    if (userId) {
+      const nextReset = new Date();
+      nextReset.setMonth(nextReset.getMonth() + 1);
+      await patchQuota(userId, {
+        monthly_scans_used:  0,
+        monthly_reset_at:    nextReset.toISOString(),
+        subscription_status: 'active',
+      });
+    }
+  }
+
   if (event.type === 'invoice.payment_failed') {
     const invoice = event.data.object;
     const subId   = invoice.subscription;
