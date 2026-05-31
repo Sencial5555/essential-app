@@ -316,6 +316,35 @@
     }
     .chrome-cta:active { transform: scale(0.97); }
 
+    /* ── Chrome extension header button ── */
+    .chrome-header-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 13px;
+      border-radius: 9px;
+      border: 1px solid var(--border-active);
+      background: transparent;
+      color: var(--text-primary);
+      font-size: 12px;
+      font-weight: 600;
+      text-decoration: none;
+      letter-spacing: 0.01em;
+      white-space: nowrap;
+      transition: border-color 240ms ease, background 240ms ease, transform 200ms ease;
+      flex-shrink: 0;
+    }
+    .chrome-header-btn:hover {
+      border-color: var(--accent-violet);
+      background: var(--accent-soft);
+      transform: translateY(-1px);
+    }
+    .chrome-header-btn:active { transform: scale(0.97); }
+    @media (max-width: 500px) {
+      .chrome-btn-label { display: none; }
+      .chrome-header-btn { padding: 7px 9px; }
+    }
+
     /* ── Generic button active ── */
     .btn-active { transition: transform 160ms cubic-bezier(0.22,0.61,0.36,1), filter 200ms ease, background 200ms ease, border-color 200ms ease; }
     .btn-active:active { transform: scale(0.97); }
@@ -787,15 +816,31 @@
         <img src="owl-logo-v2-clean.png" alt="" style="width:100%; height:100%; object-fit:contain; display:block;" />
       </span>
       <span style="font-size:21px; font-weight:800; letter-spacing:0.18em; color:var(--accent-violet);">ESSENTIAL</span>
-      <!-- Theme toggle — absolutely positioned so wordmark stays perfectly centered -->
-      <button id="theme-toggle" aria-label="Toggle light/dark mode" onclick="toggleTheme()" style="position:absolute; right:20px; top:50%; transform:translateY(-50%);">
-        <div id="toggle-thumb">
-          <!-- Moon icon (dark mode) -->
-          <svg class="icon-moon" width="10" height="10" viewBox="0 0 24 24" fill="white"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-          <!-- Sun icon (light mode) -->
-          <svg class="icon-sun" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="4" fill="white" stroke="none"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="4.22" y1="4.22" x2="6.34" y2="6.34"/><line x1="17.66" y1="17.66" x2="19.78" y2="19.78"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/><line x1="4.22" y1="19.78" x2="6.34" y2="17.66"/><line x1="17.66" y1="6.34" x2="19.78" y2="4.22"/></svg>
-        </div>
-      </button>
+      <!-- Right controls — absolutely positioned so wordmark stays perfectly centered -->
+      <div style="position:absolute; right:16px; top:50%; transform:translateY(-50%); display:flex; align-items:center; gap:8px;">
+        <a href="https://chromewebstore.google.com/detail/essential-%E2%80%94-ai-image-dete/ecnmjghlclpenpkkdkdaokdejmfbiffd"
+           target="_blank" rel="noopener"
+           class="chrome-header-btn btn-active"
+           aria-label="Add Essential to Chrome — free extension">
+          <!-- Chrome logo icon -->
+          <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12,12 L12,3 A9,9 0 0,1 19.8,16.5 Z" fill="#EA4335"/>
+            <path d="M12,12 L19.8,16.5 A9,9 0 0,1 4.2,16.5 Z" fill="#FBBC05"/>
+            <path d="M12,12 L4.2,16.5 A9,9 0 0,1 12,3 Z" fill="#34A853"/>
+            <circle cx="12" cy="12" r="4.5" fill="#4285F4"/>
+            <circle cx="12" cy="12" r="3" fill="white"/>
+          </svg>
+          <span class="chrome-btn-label">Add to Chrome</span>
+        </a>
+        <button id="theme-toggle" aria-label="Toggle light/dark mode" onclick="toggleTheme()">
+          <div id="toggle-thumb">
+            <!-- Moon icon (dark mode) -->
+            <svg class="icon-moon" width="10" height="10" viewBox="0 0 24 24" fill="white"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            <!-- Sun icon (light mode) -->
+            <svg class="icon-sun" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="4" fill="white" stroke="none"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="4.22" y1="4.22" x2="6.34" y2="6.34"/><line x1="17.66" y1="17.66" x2="19.78" y2="19.78"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/><line x1="4.22" y1="19.78" x2="6.34" y2="17.66"/><line x1="17.66" y1="6.34" x2="19.78" y2="4.22"/></svg>
+          </div>
+        </button>
+      </div>
     </header>
 
     <!-- ══════════════════════════════════════
@@ -825,20 +870,6 @@
         <p style="font-size:14px; color:var(--text-secondary); max-width:380px; margin: 16px auto 0; line-height:1.6;">
           A quiet second opinion on the images you can't quite place. Drop an image, we'll tell you what we see.
         </p>
-        <a href="https://chromewebstore.google.com/detail/essential-%E2%80%94-ai-image-dete/ecnmjghlclpenpkkdkdaokdejmfbiffd"
-           target="_blank" rel="noopener"
-           class="chrome-cta btn-active"
-           aria-label="Add Essential to Chrome — free extension">
-          <!-- Chrome icon -->
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <circle cx="12" cy="12" r="3.6" fill="currentColor"/>
-            <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" fill="none"/>
-            <line x1="12" y1="3" x2="12" y2="8.4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            <line x1="4.2" y1="17.7" x2="8.7" y2="11.7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            <line x1="19.8" y1="17.7" x2="15.3" y2="11.7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-          </svg>
-          Add to Chrome — it's free
-        </a>
       </section>
 
       <!-- ── MAIN CONTENT ── -->
