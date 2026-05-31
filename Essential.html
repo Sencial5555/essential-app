@@ -290,6 +290,32 @@
     #scan-btn:hover  { filter: brightness(0.92); transform: translateY(-1px); }
     #scan-btn:active { transform: scale(0.98); transition-duration: 120ms; }
 
+    /* ── Chrome extension CTA ── */
+    .chrome-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 22px;
+      padding: 10px 20px;
+      border-radius: 12px;
+      border: 1px solid var(--border-active);
+      background: transparent;
+      color: var(--text-secondary);
+      font-size: 13px;
+      font-weight: 500;
+      text-decoration: none;
+      letter-spacing: 0.01em;
+      transition: border-color 240ms ease, background 240ms ease, color 240ms ease, transform 200ms ease;
+      cursor: pointer;
+    }
+    .chrome-cta:hover {
+      border-color: var(--accent-violet);
+      background: var(--accent-soft);
+      color: var(--accent-deep);
+      transform: translateY(-1px);
+    }
+    .chrome-cta:active { transform: scale(0.97); }
+
     /* ── Generic button active ── */
     .btn-active { transition: transform 160ms cubic-bezier(0.22,0.61,0.36,1), filter 200ms ease, background 200ms ease, border-color 200ms ease; }
     .btn-active:active { transform: scale(0.97); }
@@ -799,6 +825,20 @@
         <p style="font-size:14px; color:var(--text-secondary); max-width:380px; margin: 16px auto 0; line-height:1.6;">
           A quiet second opinion on the images you can't quite place. Drop an image, we'll tell you what we see.
         </p>
+        <a href="https://chromewebstore.google.com/detail/essential-%E2%80%94-ai-image-dete/ecnmjghlclpenpkkdkdaokdejmfbiffd"
+           target="_blank" rel="noopener"
+           class="chrome-cta btn-active"
+           aria-label="Add Essential to Chrome — free extension">
+          <!-- Chrome icon -->
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle cx="12" cy="12" r="3.6" fill="currentColor"/>
+            <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" fill="none"/>
+            <line x1="12" y1="3" x2="12" y2="8.4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <line x1="4.2" y1="17.7" x2="8.7" y2="11.7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <line x1="19.8" y1="17.7" x2="15.3" y2="11.7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          Add to Chrome — it's free
+        </a>
       </section>
 
       <!-- ── MAIN CONTENT ── -->
@@ -1005,8 +1045,13 @@
       <p id="system-status" style="margin-top:10px; font-size:10px; color:var(--text-secondary); font-family:ui-monospace,'SF Mono','Fira Code',monospace; letter-spacing:0.04em;">
         System Status: Nominal &nbsp;·&nbsp; Build v1.0.4
       </p>
-      <p style="margin-top:8px; font-size:11px; color:var(--text-secondary);">
+      <p style="margin-top:8px; font-size:11px; color:var(--text-secondary); display:flex; align-items:center; justify-content:center; gap:14px;">
         <a href="/privacy.html" style="color:var(--text-secondary); text-decoration:none;" onmouseover="this.style.color='var(--accent-blue)'" onmouseout="this.style.color='var(--text-secondary)'">Privacy Policy</a>
+        <span style="width:1px; height:10px; background:var(--border-subtle); display:inline-block;"></span>
+        <a href="https://chromewebstore.google.com/detail/essential-%E2%80%94-ai-image-dete/ecnmjghlclpenpkkdkdaokdejmfbiffd"
+           target="_blank" rel="noopener"
+           style="color:var(--text-secondary); text-decoration:none;"
+           onmouseover="this.style.color='var(--accent-blue)'" onmouseout="this.style.color='var(--text-secondary)'">Chrome Extension</a>
       </p>
       <p class="footer-footnote" style="margin-top:6px; font-size:10px; color:var(--text-muted);">Results are probabilistic. Stylized or edited images may affect accuracy.</p>
     </footer>
